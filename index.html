@@ -145,7 +145,7 @@
   <dialog class="modal" id="image-dialog">
     <div class="modal-card modal-wide">
       <div class="modal-head"><div><span class="eyebrow">ASSET LIBRARY</span><h2>图片库</h2></div><button class="icon-btn" id="close-image" type="button" aria-label="关闭">×</button></div>
-      <p class="modal-copy">上传后会压缩到适合题解的大小，并嵌入工程 JSON。点击「插入」写进正文，或把图片设为本页主图。</p>
+      <p class="modal-copy">上传后会压缩到适合题解的大小，并嵌入工程 JSON。点击「插入」写进正文，或把图片设为本页主图。插入后可以点工具栏的「尺寸」，或直接点预览里的图片调整宽度与对齐。</p>
       <label class="image-drop" id="image-drop">
         <strong>拖拽图片到这里</strong>
         <span>也可以粘贴截图，或点击选择 PNG / JPG / WebP / GIF</span>
@@ -154,6 +154,15 @@
       <p class="image-status" id="image-status"></p>
       <div class="image-grid" id="image-grid"></div>
       <div class="modal-actions"><button class="btn btn-ghost" id="finish-images" type="button">完成</button></div>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="image-settings-dialog">
+    <div class="modal-card modal-wide">
+      <div class="modal-head"><div><span class="eyebrow">IMAGE LAYOUT</span><h2>图片尺寸与对齐</h2></div><button class="icon-btn" id="close-image-settings" type="button" aria-label="关闭">×</button></div>
+      <p class="modal-copy">拖动宽度滑块即可调整正文图片和本页主图；正文图片还可以选择左对齐、居中或右对齐。修改会实时显示在预览里。</p>
+      <div class="image-settings-list" id="image-settings-list"></div>
+      <div class="modal-actions"><button class="btn btn-primary" id="finish-image-settings" type="button">完成</button></div>
     </div>
   </dialog>
 
@@ -206,7 +215,7 @@ git push -u origin main</pre><button class="btn btn-ghost btn-small" id="copy-de
       <div class="help-grid">
         <section><h3>1. 先搭结构</h3><p>「＋ 题目」会同时创建题目页和一页解法。左侧结构可以添加解法页、自定义页、题目目录页，以及独立的「致谢」和「结语」收尾页。每道题自动编号，页眉进度点会标出当前题。</p></section>
         <section><h3>2. 写 Markdown</h3><p>正文支持标题、列表、引用、表格、代码块、<code>**粗体**</code>、<code>==高亮==</code> 和链接。行内公式写 <code>$...$</code>，独立公式写 <code>$$...$$</code>；工具用 KaTeX 离线渲染。</p></section>
-        <section><h3>3. 插图片</h3><p>在正文工具栏点图片按钮，上传后插入 <code>![图注](asset:id)</code>；也可以把截图直接粘贴或拖进编辑区。图文页可以在右侧放一张主图。</p></section>
+        <section><h3>3. 插图片</h3><p>在正文工具栏点图片按钮，上传后插入 <code>![图注](asset:id)</code>；也可以把截图直接粘贴或拖进编辑区。插入后点工具栏的「尺寸」，或直接点预览里的图片，就能调宽度和对齐；图文页的主图也有缩放滑块。</p></section>
         <section><h3>4. 检查页面</h3><p>预览会提示内容是否可能超出 16:9。出现提示时，精简文字、把推导拆到下一页，或改用通栏 / 图文布局。</p></section>
         <section><h3>5. 导出 PDF</h3><p>点右上角「导出 PDF」，在打印窗口选择「另存为 PDF」、边距无、关闭页眉页脚并开启背景图形。每页固定为 960 × 540 pt。</p></section>
         <section><h3>6. 分享与部署</h3><p>「导出 JSON」可以备份和交换工程；「部署」里有 GitHub Pages 的三步说明。工具没有后端，所有人的草稿都存在自己的浏览器里。致谢页可以填写出题组、验题人、志愿者、参赛选手、教练老师和特别鸣谢，并默认标注「排名不分先后」；结语页适合写赛后的碎碎念。</p></section>

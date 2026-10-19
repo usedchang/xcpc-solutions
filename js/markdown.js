@@ -6,15 +6,39 @@
   const MD = TX.markdown = {};
   const TOKEN = /@@TXMATH(\d+)@@/g;
 
+  function parseAssetHref(href) {
+    const raw = String(href || '');
+    if (!/^asset:/i.test(raw)) return null;
+    const rest = raw.slice(6);
+    const queryIndex = rest.indexOf('?');
+    const id = queryIndex < 0 ? rest : rest.slice(0, queryIndex);
+    if (!id) return null;
+    const params = new URLSearchParams(queryIndex < 0 ? '' : rest.slice(queryIndex + 1));
+    const width = U.clamp(Number.parseInt(params.get('w'), 10) || 100, 20, 100);
+    const align = ['left', 'center', 'right'].includes(params.get('a')) ? params.get('a') : 'center';
+    return { id, width, align, params };
+  }
+
+  function formatAssetHref(id, width, align) {
+    const params = new URLSearchParams();
+    if (Number(width) < 100) params.set('w', String(U.clamp(Number(width) || 100, 20, 100)));
+    if (align && align !== 'center') params.set('a', align);
+    const query = params.toString();
+    return `asset:${id}${query ? `?${query}` : ''}`;
+  }
+
+  MD.parseAssetHref = parseAssetHref;
+  MD.formatAssetHref = formatAssetHref;
+
   let renderer = null;
   if (window.marked && window.marked.Renderer) {
     renderer = new window.marked.Renderer();
     renderer.image = (href, title, text) => {
       const alt = U.escapeAttr(text || title || '');
       const caption = text ? `<span class="md-caption">${U.escapeHtml(text)}</span>` : '';
-      if (/^asset:/i.test(href || '')) {
-        const id = String(href).slice(6);
-        return `<span class="md-figure"><img data-asset="${U.escapeAttr(id)}" alt="${alt}"${title ? ` title="${U.escapeAttr(title)}"` : ''}>${caption}</span>`;
+      const asset = parseAssetHref(href);
+      if (asset) {
+        return `<span class="md-figure align-${asset.align}" data-asset-id="${U.escapeAttr(asset.id)}" data-img-w="${asset.width}" data-img-a="${asset.align}"><img data-asset="${U.escapeAttr(asset.id)}" data-asset-id="${U.escapeAttr(asset.id)}" alt="${alt}"${title ? ` title="${U.escapeAttr(title)}"` : ''}>${caption}</span>`;
       }
       if (/^(https?:|data:image\/)/i.test(href || '')) {
         return `<span class="md-figure"><img src="${U.escapeAttr(href)}" alt="${alt}"${title ? ` title="${U.escapeAttr(title)}"` : ''}>${caption}</span>`;
@@ -146,10 +170,23 @@
     });
   }
 
+  function applyImageLayout(image) {
+    const figure = image.closest('.md-figure');
+    if (!figure) return;
+    const width = U.clamp(Number(figure.dataset.imgW) || 100, 20, 100);
+    const align = ['left', 'center', 'right'].includes(figure.dataset.imgA) ? figure.dataset.imgA : 'center';
+    figure.classList.remove('align-left', 'align-center', 'align-right');
+    figure.classList.add(`align-${align}`);
+    image.style.maxWidth = `${width}%`;
+    image.dataset.imgWidth = String(width);
+    image.dataset.imgAlign = align;
+  }
+
   function resolveAssetImages(root, project) {
     const map = new Map((project.assets || []).map((asset) => [asset.id, asset]));
     root.querySelectorAll('img[data-asset]').forEach((image) => {
-      const asset = map.get(image.getAttribute('data-asset'));
+      const assetId = image.getAttribute('data-asset');
+      const asset = map.get(assetId);
       if (!asset) {
         const placeholder = document.createElement('span');
         placeholder.className = 'missing-image';
@@ -158,10 +195,12 @@
         return;
       }
       image.src = asset.data;
+      image.setAttribute('data-asset-id', assetId);
       image.removeAttribute('data-asset');
       image.loading = 'eager';
       image.decoding = 'async';
       if (!image.alt) image.alt = asset.name || '题解插图';
+      applyImageLayout(image);
     });
   }
 

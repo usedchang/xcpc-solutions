@@ -240,7 +240,8 @@
     const asset = page.imageId ? map.get(page.imageId) : null;
     if (!asset) return '';
     const caption = String(page.imageCaption || '').trim();
-    return `<figure class="${className}"><img src="${attr(asset.data)}" alt="${attr(caption || asset.name || '题解插图')}">${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
+    const width = U.clamp(Number(page.imageWidth) || 100, 25, 100);
+    return `<figure class="${className}"><img src="${attr(asset.data)}" data-hero-image="1" style="max-width:${width}%" alt="${attr(caption || asset.name || '题解插图')}">${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
   }
 
   function solutionMarkup(project, page, pageNo, preview) {

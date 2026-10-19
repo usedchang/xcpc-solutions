@@ -5,6 +5,7 @@
   const U = TX.util;
   const M = TX.model;
   const R = TX.render;
+  const MD = TX.markdown;
 
   const $ = U.$;
   const $$ = U.$$;
@@ -16,6 +17,9 @@
     formulaTarget: '',
     imageTarget: '',
     imageHero: false,
+    imageSettingsUsages: [],
+    imageSettingsAssetId: '',
+    imageSettingsHero: false,
     source: '',
     booted: false,
     previewTimer: 0,
@@ -257,6 +261,7 @@
       <button type="button" data-cmd="formula" title="行内 TeX 公式">ƒx</button>
       <button type="button" data-cmd="display" title="独占一行的公式">∑</button>
       <button type="button" data-cmd="image" title="插入图片">▧ 图片</button>
+      <button type="button" data-cmd="image-settings" title="调整正文图片大小与对齐">⇔ 尺寸</button>
     </div>`;
   }
 
@@ -489,6 +494,7 @@
 
   function heroImageEditor(page) {
     const asset = (state.project.assets || []).find((item) => item.id === page.imageId);
+    const width = U.clamp(Number(page.imageWidth) || 100, 25, 100);
     return `<div class="field">
       <span class="field-label"><span>本页主图</span><em>图文 / 整页图布局</em></span>
       <div class="image-select-row">
@@ -496,6 +502,12 @@
         <button type="button" class="btn btn-ghost btn-small" data-open-images="hero">＋ 上传</button>
       </div>
       ${asset ? `<div class="image-thumb-row"><img src="${attr(asset.data)}" alt=""><button type="button" data-page-action="remove-image">移除主图</button></div>` : '<p class="field-hint">也可以直接上传一张算法示意图；正文里仍然可以插入多张图片。</p>'}
+      <div class="image-scale-row">
+        <span>主图宽度</span>
+        <input type="range" data-bind="page.imageWidth" min="25" max="100" step="5" value="${width}" aria-label="主图宽度">
+        <output data-image-width-output>${width}%</output>
+      </div>
+      <p class="field-hint">也可以直接点预览里的主图调整；正文图片请点工具栏的「尺寸」。</p>
     </div>
     ${inputField('图注（可选）', 'page.imageCaption', page.imageCaption, { placeholder: '图 1：扫描过程示意' })}`;
   }
@@ -615,6 +627,7 @@
     if (command === 'formula') return openFormulaDialog(textarea.id, 'inline');
     if (command === 'display') return openFormulaDialog(textarea.id, 'display');
     if (command === 'image') return openImageDialog(textarea.id, false);
+    if (command === 'image-settings') return openImageSettings();
     if (command === 'bold') return wrapSelection(textarea, '**', '**', '重点');
     if (command === 'italic') return wrapSelection(textarea, '*', '*', '强调');
     if (command === 'strike') return wrapSelection(textarea, '~~', '~~', '删除');
@@ -944,6 +957,184 @@
     });
   }
 
+  /* ---------- inline image sizing ---------- */
+  const ASSET_IMAGE_PATTERN = String.raw`!\[([^\]]*)\]\((asset:[^)\s]+)\)`;
+  const ALIGN_LABELS = { left: '左对齐', center: '居中', right: '右对齐' };
+
+  function imageFieldsForPage(page) {
+    const fields = [];
+    if (page.type === 'solution' || page.type === 'custom') {
+      fields.push({ key: 'page.left', label: '正文左栏', get: () => page.left, set: (value) => { page.left = value; } });
+      fields.push({ key: 'page.right', label: '正文右栏', get: () => page.right, set: (value) => { page.right = value; } });
+    } else if (page.type === 'problem') {
+      const problem = M.problemById(state.project, page.problemId);
+      if (problem) {
+        fields.push({ key: 'problem.statement', label: '题面', get: () => problem.statement, set: (value) => { problem.statement = value; } });
+        fields.push({ key: 'problem.constraints', label: 'Constraints', get: () => problem.constraints, set: (value) => { problem.constraints = value; } });
+      }
+    } else if (page.type === 'closing') {
+      fields.push({ key: 'page.body', label: '结语正文', get: () => page.body, set: (value) => { page.body = value; } });
+    } else if (page.type === 'agenda') {
+      fields.push({ key: 'page.intro', label: '目录说明', get: () => page.intro, set: (value) => { page.intro = value; } });
+    } else if (page.type === 'thanks') {
+      fields.push({ key: 'page.intro', label: '致谢总起', get: () => page.intro, set: (value) => { page.intro = value; } });
+      fields.push({ key: 'page.outro', label: '致谢收束', get: () => page.outro, set: (value) => { page.outro = value; } });
+    }
+    return fields;
+  }
+
+  function collectImageUsages(page) {
+    const usages = [];
+    for (const field of imageFieldsForPage(page)) {
+      const text = String(field.get() || '');
+      const regex = new RegExp(ASSET_IMAGE_PATTERN, 'g');
+      let match;
+      let occurrence = 0;
+      while ((match = regex.exec(text))) {
+        const parsed = MD.parseAssetHref(match[2]);
+        if (parsed) {
+          usages.push({
+            index: usages.length,
+            field,
+            occurrence,
+            caption: match[1],
+            assetId: parsed.id,
+            width: parsed.width,
+            align: parsed.align
+          });
+        }
+        occurrence += 1;
+      }
+    }
+    return usages;
+  }
+
+  function updateImageUsage(index, patch) {
+    const usage = state.imageSettingsUsages[index];
+    if (!usage) return;
+    const width = patch.width === undefined ? usage.width : U.clamp(Number(patch.width) || 100, 20, 100);
+    const align = patch.align || usage.align;
+    let occurrence = 0;
+    let changed = false;
+    const next = String(usage.field.get() || '').replace(new RegExp(ASSET_IMAGE_PATTERN, 'g'), (full, caption, href) => {
+      const current = occurrence;
+      occurrence += 1;
+      if (current !== usage.occurrence) return full;
+      const parsed = MD.parseAssetHref(href);
+      if (!parsed) return full;
+      changed = true;
+      return `![${caption}](${MD.formatAssetHref(parsed.id, width, align)})`;
+    });
+    if (!changed) return;
+    usage.field.set(next);
+    usage.width = width;
+    usage.align = align;
+    markDirty();
+    previewSoon();
+  }
+
+  function updateHeroImageWidth(value) {
+    const page = activePage();
+    if (!page || !page.imageId) return;
+    page.imageWidth = U.clamp(Number(value) || 100, 25, 100);
+    markDirty();
+    previewSoon();
+  }
+
+  function renderImageSettings() {
+    const page = activePage();
+    if (!page) return;
+    state.imageSettingsUsages = collectImageUsages(page);
+    const list = $('#image-settings-list');
+    const heroAsset = page.imageId ? (state.project.assets || []).find((asset) => asset.id === page.imageId) : null;
+    let heroRow = '';
+    if (heroAsset) {
+      const width = U.clamp(Number(page.imageWidth) || 100, 25, 100);
+      const target = state.imageSettingsHero ? ' is-target' : '';
+      heroRow = `<div class="image-setting${target}" data-hero-setting="1">
+        <img src="${attr(heroAsset.data)}" alt="">
+        <div class="image-setting-copy"><strong>本页主图</strong><span>${escape(heroAsset.name)} · 图文 / 整页图片布局</span></div>
+        <div class="image-setting-controls">
+          <div class="image-setting-line"><span>宽度</span><input type="range" data-hero-width min="25" max="100" step="5" value="${width}" aria-label="主图宽度"><output data-hero-output>${width}%</output></div>
+          <div class="image-setting-line"><span>位置</span><span class="image-setting-static">居中</span></div>
+        </div>
+      </div>`;
+    }
+    const rows = state.imageSettingsUsages.map((usage) => {
+      const asset = (state.project.assets || []).find((item) => item.id === usage.assetId);
+      const target = state.imageSettingsAssetId && usage.assetId === state.imageSettingsAssetId ? ' is-target' : '';
+      return `<div class="image-setting${target}" data-setting-index="${usage.index}">
+        <img src="${asset ? attr(asset.data) : ''}" alt="">
+        <div class="image-setting-copy"><strong>${escape(usage.caption || (asset && asset.name) || '正文图片')}</strong><span data-setting-meta="${usage.index}">${escape(usage.field.label)} · ${usage.width}% · ${ALIGN_LABELS[usage.align]}</span></div>
+        <div class="image-setting-controls">
+          <div class="image-setting-line"><span>宽度</span><input type="range" data-setting-width="${usage.index}" min="20" max="100" step="5" value="${usage.width}" aria-label="图片宽度"><output data-setting-output="${usage.index}">${usage.width}%</output></div>
+          <div class="image-setting-line"><span>对齐</span><select data-setting-align="${usage.index}" aria-label="图片对齐"><option value="left"${usage.align === 'left' ? ' selected' : ''}>左对齐</option><option value="center"${usage.align === 'center' ? ' selected' : ''}>居中</option><option value="right"${usage.align === 'right' ? ' selected' : ''}>右对齐</option></select></div>
+        </div>
+      </div>`;
+    }).join('');
+    if (!heroRow && !rows) {
+      list.innerHTML = '<div class="image-settings-empty">这一页还没有图片。<br>先在正文里插入图片，或在图文页设置一张主图。</div>';
+      return;
+    }
+    list.innerHTML = `${heroRow}${rows}`;
+    if (state.imageSettingsAssetId || state.imageSettingsHero) {
+      window.setTimeout(() => {
+        const target = list.querySelector('.is-target');
+        if (target) target.scrollIntoView({ block: 'nearest' });
+      }, 50);
+    }
+  }
+
+  function openImageSettings(options = {}) {
+    const page = activePage();
+    if (!page) return;
+    state.imageSettingsAssetId = options.assetId || '';
+    state.imageSettingsHero = Boolean(options.hero);
+    renderImageSettings();
+    openDialog('image-settings-dialog');
+  }
+
+  function setupImageSettings() {
+    $('#image-settings-list').addEventListener('input', (event) => {
+      const widthInput = event.target.closest('[data-setting-width]');
+      if (widthInput) {
+        const index = Number(widthInput.dataset.settingWidth);
+        updateImageUsage(index, { width: widthInput.value });
+        const usage = state.imageSettingsUsages[index];
+        const output = widthInput.parentElement.querySelector('output');
+        if (output) output.textContent = `${usage ? usage.width : widthInput.value}%`;
+        const meta = document.querySelector(`[data-setting-meta="${index}"]`);
+        if (meta && usage) meta.textContent = `${usage.field.label} · ${usage.width}% · ${ALIGN_LABELS[usage.align]}`;
+        return;
+      }
+      const heroInput = event.target.closest('[data-hero-width]');
+      if (heroInput) {
+        updateHeroImageWidth(heroInput.value);
+        const output = heroInput.parentElement.querySelector('output');
+        if (output) output.textContent = `${activePage().imageWidth}%`;
+      }
+    });
+    $('#image-settings-list').addEventListener('change', (event) => {
+      const alignSelect = event.target.closest('[data-setting-align]');
+      if (!alignSelect) return;
+      const index = Number(alignSelect.dataset.settingAlign);
+      updateImageUsage(index, { align: alignSelect.value });
+      const usage = state.imageSettingsUsages[index];
+      const meta = document.querySelector(`[data-setting-meta="${index}"]`);
+      if (meta && usage) meta.textContent = `${usage.field.label} · ${usage.width}% · ${ALIGN_LABELS[usage.align]}`;
+    });
+    const close = () => closeDialog('image-settings-dialog');
+    $('#close-image-settings').addEventListener('click', close);
+    $('#finish-image-settings').addEventListener('click', close);
+    $('#image-settings-dialog').addEventListener('close', () => {
+      state.imageSettingsUsages = [];
+      state.imageSettingsAssetId = '';
+      state.imageSettingsHero = false;
+      state.lastTextareaId = '';
+      renderAll();
+    });
+  }
+
   /* ---------- page / problem operations ---------- */
   function focusField(bind) {
     window.setTimeout(() => {
@@ -999,7 +1190,8 @@
       right: '',
       complexity: '',
       imageId: '',
-      imageCaption: ''
+      imageCaption: '',
+      imageWidth: 100
     };
     M.insertAfter(state.project.pages, state.activePageId, [page]);
     state.activePageId = page.id;
@@ -1387,6 +1579,15 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
       }
     });
     $('#focus-preview').addEventListener('click', toggleFocusPreview);
+    $('#preview-frame').addEventListener('click', (event) => {
+      const hero = event.target.closest('img[data-hero-image]');
+      if (hero) {
+        openImageSettings({ hero: true });
+        return;
+      }
+      const image = event.target.closest('img[data-asset-id]');
+      if (image) openImageSettings({ assetId: image.dataset.assetId });
+    });
     $('#overflow-help').addEventListener('click', () => showToast('精简这一页的文字，或把后半段拆到下一页；也可以切换成通栏 / 图文布局。', 4200));
   }
 
@@ -1402,7 +1603,7 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
     const fields = $('#editor-fields');
     fields.addEventListener('input', (event) => {
       const target = event.target;
-      if (target.matches('textarea, input[type="text"], input[type="color"]')) {
+      if (target.matches('textarea, input[type="text"], input[type="color"], input[type="range"]')) {
         if (target.tagName === 'TEXTAREA' && target.id) state.lastTextareaId = target.id;
         if (!target.matches('[data-bind]')) return;
         if (target.tagName === 'SELECT' || target.type === 'checkbox') return;
@@ -1528,6 +1729,11 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
     if (scope === 'page' && key === 'imageId') {
       renderEditor();
     }
+    if (scope === 'page' && key === 'imageWidth') {
+      object[key] = U.clamp(Number(value) || 100, 25, 100);
+      const output = document.querySelector('[data-image-width-output]');
+      if (output) output.textContent = `${object[key]}%`;
+    }
     markDirty();
     previewSoon();
   }
@@ -1649,6 +1855,7 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
   function setupStaticDialogs() {
     setupFormulaDialog();
     setupImageDialog();
+    setupImageSettings();
   }
 
   // Listeners are installed synchronously; boot() waits only for stored data.

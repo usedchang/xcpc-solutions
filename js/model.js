@@ -75,7 +75,8 @@
       right: '',
       complexity: '',
       imageId: '',
-      imageCaption: ''
+      imageCaption: '',
+      imageWidth: 100
     };
   }
 
@@ -312,7 +313,8 @@
           right: asString(page.right),
           complexity: asString(page.complexity),
           imageId,
-          imageCaption: asString(page.imageCaption)
+          imageCaption: asString(page.imageCaption),
+          imageWidth: U.clamp(Number(page.imageWidth) || 100, 25, 100)
         };
       });
     }
