@@ -1591,18 +1591,6 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
     openDialog('prompt-dialog');
   }
 
-  /* ---------- deploy / copy ---------- */
-  const deployText = `题解工坊部署到 GitHub Pages：
-1. 新建 GitHub 仓库，把整个项目文件夹上传/推送上去。
-2. 进入仓库 Settings → Pages → Build and deployment，把 Source 设为 GitHub Actions。
-3. 等待 Actions 完成，访问 https://<your-name>.github.io/<repo>/。
-仓库已包含 .github/workflows/pages.yml，推送到 main 会自动部署。
-注意：不要上传参考 PDF（.gitignore 已排除）。题解草稿保存在各自浏览器，分享成稿请导出 PDF 或 JSON。`;
-
-  function openDeploy() {
-    openDialog('deploy-dialog');
-  }
-
   async function copyText(text, successMessage) {
     try {
       await U.copyText(text);
@@ -1643,7 +1631,6 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
     $('#import-button').addEventListener('click', openImport);
     $('#export-button').addEventListener('click', exportJson);
     $('#pdf-button').addEventListener('click', openPrintDialog);
-    $('#deploy-button').addEventListener('click', openDeploy);
     $('#confirm-pdf').addEventListener('click', doPrint);
     $('#confirm-ok').addEventListener('click', () => resolveConfirm(true));
     $('#confirm-cancel').addEventListener('click', () => resolveConfirm(false));
@@ -1874,8 +1861,6 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
     });
     $('#prompt-button')?.addEventListener('click', openPrompt);
     $('#copy-prompt').addEventListener('click', () => copyText($('#prompt-text').value, '提示词已复制。'));
-    $('#copy-deploy-command').addEventListener('click', () => copyText($('#deploy-command').textContent, '命令已复制。'));
-    $('#copy-site-hint').addEventListener('click', () => copyText(deployText, '部署说明已复制。'));
     $('#close-image').addEventListener('click', () => closeDialog('image-dialog'));
     $('#finish-images').addEventListener('click', () => closeDialog('image-dialog'));
     document.addEventListener('keydown', (event) => {

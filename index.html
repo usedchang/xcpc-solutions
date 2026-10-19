@@ -26,7 +26,6 @@
       <span class="save-state" id="save-state"><i></i><span>已自动保存</span></span>
       <button class="btn btn-ghost" id="import-button" type="button">导入</button>
       <button class="btn btn-ghost" id="export-button" type="button">导出 JSON</button>
-      <button class="btn btn-ghost" id="deploy-button" type="button">部署</button>
       <button class="btn btn-primary" id="pdf-button" type="button"><span aria-hidden="true">↗</span> 导出 PDF</button>
       <div class="menu-wrap">
         <button class="icon-btn" id="more-button" type="button" aria-label="更多操作" aria-haspopup="true" aria-expanded="false">···</button>
@@ -180,25 +179,6 @@
     </form>
   </dialog>
 
-  <dialog class="modal" id="deploy-dialog">
-    <form method="dialog" class="modal-card modal-wide">
-      <div class="modal-head"><div><span class="eyebrow">GITHUB PAGES</span><h2>部署给其他人使用</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
-      <p class="modal-copy">这是一个纯静态站点，不需要服务器或数据库。上传到 GitHub 后，打开仓库的 <b>Settings → Pages</b>，把 Source 设为 <b>GitHub Actions</b> 即可。仓库里已经包含自动部署工作流。</p>
-      <div class="deploy-grid">
-        <div class="deploy-step"><span class="deploy-num">1</span><div><h3>创建仓库</h3><p>把整个文件夹推到 GitHub。参考 PDF 与临时预览图不要上传，仓库的 <code>.gitignore</code> 已经处理。</p><a href="https://github.com/new" target="_blank" rel="noreferrer">打开 github.com/new ↗</a></div></div>
-        <div class="deploy-step"><span class="deploy-num">2</span><div><h3>推送这些文件</h3><pre class="command-block" id="deploy-command">git init
-git add .
-git commit -m "deploy tutorial studio"
-git branch -M main
-git remote add origin https://github.com/&lt;your-name&gt;/&lt;repo&gt;.git
-git push -u origin main</pre><button class="btn btn-ghost btn-small" id="copy-deploy-command" type="button">复制命令</button></div></div>
-        <div class="deploy-step"><span class="deploy-num">3</span><div><h3>开启 Pages</h3><p>进入仓库的 Settings → Pages → Build and deployment，把 Source 设为 <b>GitHub Actions</b>。等待工作流变绿，站点地址是：</p><code class="url-code">https://&lt;your-name&gt;.github.io/&lt;repo&gt;/</code></div></div>
-      </div>
-      <p class="print-note">说明：GitHub Pages 托管的是「编辑器」本身。你和别人编辑的题解草稿只保存在各自浏览器的本地存储中；分享成稿时请导出 PDF，或导出 JSON 交给对方导入。</p>
-      <div class="modal-actions"><button class="btn btn-ghost" value="cancel">关闭</button><button class="btn btn-primary" id="copy-site-hint" type="button">复制部署说明</button></div>
-    </form>
-  </dialog>
-
   <dialog class="modal" id="prompt-dialog">
     <form method="dialog" class="modal-card modal-wide">
       <div class="modal-head"><div><span class="eyebrow">WRITING BRIEF</span><h2>AI 写作提示词</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
@@ -219,7 +199,7 @@ git push -u origin main</pre><button class="btn btn-ghost btn-small" id="copy-de
 
         <section><h3>4. 检查页面</h3><p>预览会提示内容是否可能超出 16:9。出现提示时，精简文字、把推导拆到下一页，或改用通栏 / 图文布局。</p></section>
         <section><h3>5. 导出 PDF</h3><p>点右上角「导出 PDF」，在打印窗口选择「另存为 PDF」、边距无、关闭页眉页脚并开启背景图形。每页固定为 960 × 540 pt。</p></section>
-        <section><h3>6. 分享与部署</h3><p>「导出 JSON」可以备份和交换工程；「部署」里有 GitHub Pages 的三步说明。工具没有后端，所有人的草稿都存在自己的浏览器里。致谢页可以填写出题组、验题人、志愿者、参赛选手、教练老师和特别鸣谢，并默认标注「排名不分先后」；结语页适合写赛后的碎碎念。</p></section>
+        <section><h3>6. 分享</h3><p>「导出 JSON」可以备份和交换工程；「导出 PDF」用于分享成稿。工具已经部署在 GitHub Pages 上，没有后端，所有人的草稿都存在自己的浏览器里。致谢页可以填写出题组、验题人、志愿者、参赛选手、教练老师和特别鸣谢，并默认标注「排名不分先后」；结语页适合写赛后的碎碎念。</p></section>
       </div>
       <div class="shortcuts">
         <span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd> 保存</span>

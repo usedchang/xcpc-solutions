@@ -712,16 +712,6 @@ body.focus-preview .preview-foot { min-height: 25px; }
 .pdf-steps b { min-width: 220px; color: #30474f; font-size: 10.5px; font-weight: 600; }
 .pdf-steps span { color: #869396; font-size: 9.5px; line-height: 1.6; }
 .print-note { margin: 13px 0 0; padding: 9px 11px; border-left: 2px solid #d9b568; color: #7f6a40; background: #fffaf0; font-size: 9.5px; line-height: 1.65; }
-.deploy-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
-.deploy-step { display: flex; gap: 11px; padding: 12px; border: 1px solid #e5e9e3; border-radius: 7px; background: #fff; }
-.deploy-num { width: 24px; height: 24px; display: grid; place-items: center; flex: none; border-radius: 50%; color: #fff; background: var(--accent); font-family: var(--mono); font-size: 9px; }
-.deploy-step > div { min-width: 0; flex: 1; }
-.deploy-step h3 { margin: 1px 0 5px; color: #2b414a; font-size: 11.5px; }
-.deploy-step p { margin: 0 0 7px; color: #7d8b8e; font-size: 9.5px; line-height: 1.65; }
-.deploy-step a { font-size: 9.5px; text-decoration: none; }
-.deploy-step a:hover { text-decoration: underline; }
-.command-block { margin: 0 0 7px; padding: 9px 10px; overflow: auto; border-radius: 5px; color: #dbe9e5; background: #1b3039; font-family: var(--mono); font-size: 8.5px; line-height: 1.65; white-space: pre; }
-.url-code { display: inline-block; padding: 4px 7px; border-radius: 4px; color: #2e5f6c; background: #eff5f3; font-family: var(--mono); font-size: 9px; }
 .help-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 14px; }
 .help-grid section { padding: 11px 12px; border: 1px solid #e7ebe5; border-radius: 6px; background: #fff; }
 .help-grid h3 { margin: 0 0 5px; color: #2c4350; font-size: 11px; }
