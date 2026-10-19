@@ -1046,7 +1046,8 @@
     if (!page) return;
     state.imageSettingsUsages = collectImageUsages(page);
     const list = $('#image-settings-list');
-    const heroAsset = page.imageId ? (state.project.assets || []).find((asset) => asset.id === page.imageId) : null;
+    const heroVisible = (page.type === 'solution' || page.type === 'custom') && (page.layout === 'visual' || page.layout === 'figure');
+    const heroAsset = heroVisible && page.imageId ? (state.project.assets || []).find((asset) => asset.id === page.imageId) : null;
     let heroRow = '';
     if (heroAsset) {
       const width = U.clamp(Number(page.imageWidth) || 100, 25, 100);
