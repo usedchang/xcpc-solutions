@@ -522,11 +522,6 @@ body.focus-preview .preview-foot { min-height: 25px; }
 
 /* closing */
 .closing-body { position: relative; z-index: 1; justify-content: center; padding-bottom: 9.5%; }
-.closing-mark {
-  position: absolute; top: 12.5%; left: 5.1%; z-index: 0;
-  color: #e8f0f5; font-family: Georgia, "Times New Roman", serif;
-  font-size: 17cqw; font-weight: 700; line-height: .7; pointer-events: none;
-}
 .closing-page .kicker-row { margin-bottom: .1cqw; }
 .closing-page .title-row { margin-bottom: 1.4cqw; }
 .closing-title { font-size: 3.8cqw; }
@@ -701,6 +696,9 @@ body.focus-preview .preview-foot { min-height: 25px; }
 .image-setting-line output { min-width: 34px; color: var(--accent); font-family: var(--mono); font-size: 8.5px; text-align: right; }
 .image-setting-line select { min-width: 76px; height: 25px; padding: 0 5px; border: 1px solid #e1e7e1; border-radius: 4px; color: #5e7077; background: #fff; font-size: 9px; }
 .image-setting-static { color: #8b999d; font-size: 9px; }
+.ratio-lock { display: inline-flex; align-items: center; gap: 3px; flex: none; color: #839195; font-size: 8px; white-space: nowrap; cursor: pointer; }
+.ratio-lock input { width: 12px; height: 12px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.image-setting-line input[type="range"]:disabled { opacity: .38; cursor: not-allowed; }
 .image-settings-empty { padding: 27px 16px; border: 1px dashed #d4dfd7; border-radius: 6px; color: #98a5a6; background: #fafbf8; font-size: 10px; line-height: 1.7; text-align: center; }
 .image-settings-note { margin: 8px 0 0; color: #9aa6a7; font-size: 9px; line-height: 1.6; }
 

@@ -76,7 +76,8 @@
       complexity: '',
       imageId: '',
       imageCaption: '',
-      imageWidth: 100
+      imageWidth: 100,
+      imageHeight: 100
     };
   }
 
@@ -272,7 +273,7 @@
           return {
             id,
             type,
-            kicker: asString(page.kicker || 'ACKNOWLEDGEMENTS'),
+            kicker: Object.prototype.hasOwnProperty.call(page, 'kicker') ? asString(page.kicker) : 'ACKNOWLEDGEMENTS',
             title: asString(page.title || '致谢'),
             intro: Object.prototype.hasOwnProperty.call(page, 'intro') ? asString(page.intro) : THANKS_INTRO,
             thanksNote: Object.prototype.hasOwnProperty.call(page, 'thanksNote') ? asString(page.thanksNote) : THANKS_NOTE,
@@ -284,7 +285,7 @@
           return {
             id,
             type,
-            kicker: asString(page.kicker || 'CLOSING'),
+            kicker: Object.prototype.hasOwnProperty.call(page, 'kicker') ? asString(page.kicker) : 'CLOSING',
             title: asString(page.title || '写在最后'),
             body: Object.prototype.hasOwnProperty.call(page, 'body') ? asString(page.body) : CLOSING_BODY,
             signoff: Object.prototype.hasOwnProperty.call(page, 'signoff') ? asString(page.signoff) : '题解组'
@@ -314,7 +315,8 @@
           complexity: asString(page.complexity),
           imageId,
           imageCaption: asString(page.imageCaption),
-          imageWidth: U.clamp(Number(page.imageWidth) || 100, 25, 100)
+          imageWidth: U.clamp(Number(page.imageWidth) || 100, 25, 100),
+          imageHeight: U.clamp(Number(page.imageHeight) || 100, 20, 200)
         };
       });
     }

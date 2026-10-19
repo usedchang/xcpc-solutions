@@ -396,7 +396,7 @@
     $('#editor-fields').innerHTML = `
       ${sectionDivider('ACKNOWLEDGEMENTS PAGE')}
       <div class="field-grid">
-        ${inputField('眉题', 'page.kicker', page.kicker, { placeholder: 'ACKNOWLEDGEMENTS' })}
+        ${inputField('眉题', 'page.kicker', page.kicker, { placeholder: 'ACKNOWLEDGEMENTS', hint: '清空可隐藏左上角眉题。' })}
         ${inputField('标题', 'page.title', page.title, { placeholder: '致谢' })}
       </div>
       ${textareaField('总起说明（可选）', 'page.intro', page.intro, { rows: 3, meta: 'Markdown', placeholder: '一场比赛从题目构思到最终榜单，离不开许多人的投入。' })}
@@ -440,7 +440,7 @@
     $('#editor-fields').innerHTML = `
       ${sectionDivider('CLOSING PAGE')}
       <div class="field-grid">
-        ${inputField('眉题', 'page.kicker', page.kicker, { placeholder: 'CLOSING' })}
+        ${inputField('眉题', 'page.kicker', page.kicker, { placeholder: 'CLOSING', hint: '清空可隐藏左上角眉题。' })}
         ${inputField('标题', 'page.title', page.title, { placeholder: '写在最后' })}
       </div>
       ${textareaField('想说的话', 'page.body', page.body, {
@@ -1000,6 +1000,7 @@
             caption: match[1],
             assetId: parsed.id,
             width: parsed.width,
+            height: parsed.height,
             align: parsed.align
           });
         }
@@ -1013,6 +1014,7 @@
     const usage = state.imageSettingsUsages[index];
     if (!usage) return;
     const width = patch.width === undefined ? usage.width : U.clamp(Number(patch.width) || 100, 20, 100);
+    const height = patch.height === undefined ? usage.height : U.clamp(Number(patch.height) || 100, 20, 200);
     const align = patch.align || usage.align;
     let occurrence = 0;
     let changed = false;
@@ -1023,11 +1025,12 @@
       const parsed = MD.parseAssetHref(href);
       if (!parsed) return full;
       changed = true;
-      return `![${caption}](${MD.formatAssetHref(parsed.id, width, align)})`;
+      return `![${caption}](${MD.formatAssetHref(parsed.id, width, height, align)})`;
     });
     if (!changed) return;
     usage.field.set(next);
     usage.width = width;
+    usage.height = height;
     usage.align = align;
     markDirty();
     previewSoon();
@@ -1037,6 +1040,14 @@
     const page = activePage();
     if (!page || !page.imageId) return;
     page.imageWidth = U.clamp(Number(value) || 100, 25, 100);
+    markDirty();
+    previewSoon();
+  }
+
+  function updateHeroImageHeight(value) {
+    const page = activePage();
+    if (!page || !page.imageId) return;
+    page.imageHeight = U.clamp(Number(value) || 100, 20, 200);
     markDirty();
     previewSoon();
   }
@@ -1051,12 +1062,15 @@
     let heroRow = '';
     if (heroAsset) {
       const width = U.clamp(Number(page.imageWidth) || 100, 25, 100);
+      const height = U.clamp(Number(page.imageHeight) || 100, 20, 200);
+      const locked = height === 100;
       const target = state.imageSettingsHero ? ' is-target' : '';
       heroRow = `<div class="image-setting${target}" data-hero-setting="1">
         <img src="${attr(heroAsset.data)}" alt="">
         <div class="image-setting-copy"><strong>本页主图</strong><span>${escape(heroAsset.name)} · 图文 / 整页图片布局</span></div>
         <div class="image-setting-controls">
           <div class="image-setting-line"><span>宽度</span><input type="range" data-hero-width min="25" max="100" step="5" value="${width}" aria-label="主图宽度"><output data-hero-output>${width}%</output></div>
+          <div class="image-setting-line"><span>高度</span><input type="range" data-hero-height min="20" max="200" step="5" value="${height}" aria-label="主图高度"${locked ? ' disabled' : ''}><output data-hero-height-output>${height}%</output><label class="ratio-lock"><input type="checkbox" data-hero-lock${locked ? ' checked' : ''}> 等比</label></div>
           <div class="image-setting-line"><span>位置</span><span class="image-setting-static">居中</span></div>
         </div>
       </div>`;
@@ -1064,11 +1078,13 @@
     const rows = state.imageSettingsUsages.map((usage) => {
       const asset = (state.project.assets || []).find((item) => item.id === usage.assetId);
       const target = state.imageSettingsAssetId && usage.assetId === state.imageSettingsAssetId ? ' is-target' : '';
+      const locked = usage.height === 100;
       return `<div class="image-setting${target}" data-setting-index="${usage.index}">
         <img src="${asset ? attr(asset.data) : ''}" alt="">
-        <div class="image-setting-copy"><strong>${escape(usage.caption || (asset && asset.name) || '正文图片')}</strong><span data-setting-meta="${usage.index}">${escape(usage.field.label)} · ${usage.width}% · ${ALIGN_LABELS[usage.align]}</span></div>
+        <div class="image-setting-copy"><strong>${escape(usage.caption || (asset && asset.name) || '正文图片')}</strong><span data-setting-meta="${usage.index}">${escape(usage.field.label)} · ${usage.width}% × ${usage.height}% · ${ALIGN_LABELS[usage.align]}</span></div>
         <div class="image-setting-controls">
           <div class="image-setting-line"><span>宽度</span><input type="range" data-setting-width="${usage.index}" min="20" max="100" step="5" value="${usage.width}" aria-label="图片宽度"><output data-setting-output="${usage.index}">${usage.width}%</output></div>
+          <div class="image-setting-line"><span>高度</span><input type="range" data-setting-height="${usage.index}" min="20" max="200" step="5" value="${usage.height}" aria-label="图片高度"${locked ? ' disabled' : ''}><output data-setting-height-output="${usage.index}">${usage.height}%</output><label class="ratio-lock"><input type="checkbox" data-setting-lock="${usage.index}"${locked ? ' checked' : ''}> 等比</label></div>
           <div class="image-setting-line"><span>对齐</span><select data-setting-align="${usage.index}" aria-label="图片对齐"><option value="left"${usage.align === 'left' ? ' selected' : ''}>左对齐</option><option value="center"${usage.align === 'center' ? ' selected' : ''}>居中</option><option value="right"${usage.align === 'right' ? ' selected' : ''}>右对齐</option></select></div>
         </div>
       </div>`;
@@ -1095,6 +1111,10 @@
     openDialog('image-settings-dialog');
   }
 
+  function imageUsageMeta(usage) {
+    return `${usage.field.label} · ${usage.width}% × ${usage.height}% · ${ALIGN_LABELS[usage.align]}`;
+  }
+
   function setupImageSettings() {
     $('#image-settings-list').addEventListener('input', (event) => {
       const widthInput = event.target.closest('[data-setting-width]');
@@ -1105,24 +1125,78 @@
         const output = widthInput.parentElement.querySelector('output');
         if (output) output.textContent = `${usage ? usage.width : widthInput.value}%`;
         const meta = document.querySelector(`[data-setting-meta="${index}"]`);
-        if (meta && usage) meta.textContent = `${usage.field.label} · ${usage.width}% · ${ALIGN_LABELS[usage.align]}`;
+        if (meta && usage) meta.textContent = imageUsageMeta(usage);
         return;
       }
-      const heroInput = event.target.closest('[data-hero-width]');
-      if (heroInput) {
-        updateHeroImageWidth(heroInput.value);
-        const output = heroInput.parentElement.querySelector('output');
+      const heightInput = event.target.closest('[data-setting-height]');
+      if (heightInput) {
+        const index = Number(heightInput.dataset.settingHeight);
+        updateImageUsage(index, { height: heightInput.value });
+        const usage = state.imageSettingsUsages[index];
+        const output = heightInput.parentElement.querySelector('[data-setting-height-output]');
+        if (output) output.textContent = `${usage ? usage.height : heightInput.value}%`;
+        const meta = document.querySelector(`[data-setting-meta="${index}"]`);
+        if (meta && usage) meta.textContent = imageUsageMeta(usage);
+        const lock = heightInput.parentElement.querySelector('[data-setting-lock]');
+        if (lock) lock.checked = false;
+        return;
+      }
+      const heroWidth = event.target.closest('[data-hero-width]');
+      if (heroWidth) {
+        updateHeroImageWidth(heroWidth.value);
+        const output = heroWidth.parentElement.querySelector('output');
         if (output) output.textContent = `${activePage().imageWidth}%`;
+        return;
+      }
+      const heroHeight = event.target.closest('[data-hero-height]');
+      if (heroHeight) {
+        updateHeroImageHeight(heroHeight.value);
+        const output = heroHeight.parentElement.querySelector('[data-hero-height-output]');
+        if (output) output.textContent = `${activePage().imageHeight}%`;
+        const lock = heroHeight.parentElement.querySelector('[data-hero-lock]');
+        if (lock) lock.checked = false;
       }
     });
     $('#image-settings-list').addEventListener('change', (event) => {
+      const lock = event.target.closest('[data-setting-lock]');
+      if (lock) {
+        const index = Number(lock.dataset.settingLock);
+        const heightInput = document.querySelector(`[data-setting-height="${index}"]`);
+        const output = document.querySelector(`[data-setting-height-output="${index}"]`);
+        if (heightInput) {
+          heightInput.disabled = lock.checked;
+          if (lock.checked) {
+            heightInput.value = '100';
+            updateImageUsage(index, { height: 100 });
+          }
+        }
+        if (output) output.textContent = lock.checked ? '100%' : `${state.imageSettingsUsages[index]?.height || 100}%`;
+        const usage = state.imageSettingsUsages[index];
+        const meta = document.querySelector(`[data-setting-meta="${index}"]`);
+        if (meta && usage) meta.textContent = imageUsageMeta(usage);
+        return;
+      }
+      const heroLock = event.target.closest('[data-hero-lock]');
+      if (heroLock) {
+        const heightInput = document.querySelector('[data-hero-height]');
+        const output = document.querySelector('[data-hero-height-output]');
+        if (heightInput) {
+          heightInput.disabled = heroLock.checked;
+          if (heroLock.checked) {
+            heightInput.value = '100';
+            updateHeroImageHeight(100);
+          }
+        }
+        if (output) output.textContent = heroLock.checked ? '100%' : `${activePage().imageHeight || 100}%`;
+        return;
+      }
       const alignSelect = event.target.closest('[data-setting-align]');
       if (!alignSelect) return;
       const index = Number(alignSelect.dataset.settingAlign);
       updateImageUsage(index, { align: alignSelect.value });
       const usage = state.imageSettingsUsages[index];
       const meta = document.querySelector(`[data-setting-meta="${index}"]`);
-      if (meta && usage) meta.textContent = `${usage.field.label} · ${usage.width}% · ${ALIGN_LABELS[usage.align]}`;
+      if (meta && usage) meta.textContent = imageUsageMeta(usage);
     });
     const close = () => closeDialog('image-settings-dialog');
     $('#close-image-settings').addEventListener('click', close);
@@ -1192,7 +1266,8 @@
       complexity: '',
       imageId: '',
       imageCaption: '',
-      imageWidth: 100
+      imageWidth: 100,
+      imageHeight: 100
     };
     M.insertAfter(state.project.pages, state.activePageId, [page]);
     state.activePageId = page.id;

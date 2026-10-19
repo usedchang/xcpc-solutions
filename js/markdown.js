@@ -15,13 +15,15 @@
     if (!id) return null;
     const params = new URLSearchParams(queryIndex < 0 ? '' : rest.slice(queryIndex + 1));
     const width = U.clamp(Number.parseInt(params.get('w'), 10) || 100, 20, 100);
+    const height = U.clamp(Number.parseInt(params.get('h'), 10) || 100, 20, 200);
     const align = ['left', 'center', 'right'].includes(params.get('a')) ? params.get('a') : 'center';
-    return { id, width, align, params };
+    return { id, width, height, align, params };
   }
 
-  function formatAssetHref(id, width, align) {
+  function formatAssetHref(id, width, height, align) {
     const params = new URLSearchParams();
     if (Number(width) < 100) params.set('w', String(U.clamp(Number(width) || 100, 20, 100)));
+    if (Number(height) !== 100) params.set('h', String(U.clamp(Number(height) || 100, 20, 200)));
     if (align && align !== 'center') params.set('a', align);
     const query = params.toString();
     return `asset:${id}${query ? `?${query}` : ''}`;
@@ -38,7 +40,7 @@
       const caption = text ? `<span class="md-caption">${U.escapeHtml(text)}</span>` : '';
       const asset = parseAssetHref(href);
       if (asset) {
-        return `<span class="md-figure align-${asset.align}" data-asset-id="${U.escapeAttr(asset.id)}" data-img-w="${asset.width}" data-img-a="${asset.align}"><img data-asset="${U.escapeAttr(asset.id)}" data-asset-id="${U.escapeAttr(asset.id)}" alt="${alt}"${title ? ` title="${U.escapeAttr(title)}"` : ''}>${caption}</span>`;
+        return `<span class="md-figure align-${asset.align}" data-asset-id="${U.escapeAttr(asset.id)}" data-img-w="${asset.width}" data-img-h="${asset.height}" data-img-a="${asset.align}"><img data-asset="${U.escapeAttr(asset.id)}" data-asset-id="${U.escapeAttr(asset.id)}" alt="${alt}"${title ? ` title="${U.escapeAttr(title)}"` : ''}>${caption}</span>`;
       }
       if (/^(https?:|data:image\/)/i.test(href || '')) {
         return `<span class="md-figure"><img src="${U.escapeAttr(href)}" alt="${alt}"${title ? ` title="${U.escapeAttr(title)}"` : ''}>${caption}</span>`;
@@ -170,15 +172,26 @@
     });
   }
 
-  function applyImageLayout(image) {
+  function applyImageLayout(image, asset) {
     const figure = image.closest('.md-figure');
     if (!figure) return;
     const width = U.clamp(Number(figure.dataset.imgW) || 100, 20, 100);
+    const height = U.clamp(Number(figure.dataset.imgH) || 100, 20, 200);
     const align = ['left', 'center', 'right'].includes(figure.dataset.imgA) ? figure.dataset.imgA : 'center';
     figure.classList.remove('align-left', 'align-center', 'align-right');
     figure.classList.add(`align-${align}`);
-    image.style.maxWidth = `${width}%`;
+    const naturalWidth = Number(asset && asset.width) || image.naturalWidth || 0;
+    const naturalHeight = Number(asset && asset.height) || image.naturalHeight || 0;
+    image.style.width = `${width}%`;
+    image.style.maxWidth = '100%';
+    image.style.height = 'auto';
+    if (naturalWidth > 0 && naturalHeight > 0) {
+      image.style.aspectRatio = String((naturalWidth / naturalHeight) / (height / 100));
+    }
+    image.style.maxHeight = height === 100 ? '' : 'none';
+    image.style.objectFit = height === 100 ? 'contain' : 'fill';
     image.dataset.imgWidth = String(width);
+    image.dataset.imgHeight = String(height);
     image.dataset.imgAlign = align;
   }
 
@@ -200,7 +213,7 @@
       image.loading = 'eager';
       image.decoding = 'async';
       if (!image.alt) image.alt = asset.name || '题解插图';
-      applyImageLayout(image);
+      applyImageLayout(image, asset);
     });
   }
 

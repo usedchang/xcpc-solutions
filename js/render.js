@@ -61,8 +61,9 @@
   }
 
   function kickerMarkup(text, problem, sequence) {
+    const label = String(text ?? '').trim();
     return `<div class="kicker-row">
-      <span class="kicker">${esc(text || 'NOTE')}</span>
+      <span class="kicker${label ? '' : ' kicker-empty'}">${label ? esc(label) : ''}</span>
       <span class="kicker-right">${problem ? `<span class="problem-ref">${esc(problem.code)} · ${esc(problem.name)}</span>` : ''}${sequence ? `<span class="problem-seq">${sequence}</span>` : ''}</span>
     </div>`;
   }
@@ -180,7 +181,7 @@
     return `<article class="slide-page thanks-page" style="--accent:${attr(project.meta.accent)}">
       ${headerMarkup(project, page)}
       <div class="slide-body thanks-body">
-        ${kickerMarkup(page.kicker || 'ACKNOWLEDGEMENTS', null, 0)}
+        ${kickerMarkup(page.kicker || '', null, 0)}
         ${titleMarkup(page.title || '致谢', '')}
         <div class="prose thanks-intro">${intro}</div>
         ${String(page.thanksNote || '').trim() ? `<div class="thanks-order-note"><i></i>${esc(page.thanksNote)}</div>` : ''}
@@ -198,9 +199,8 @@
     const signoff = String(page.signoff || '').trim();
     return `<article class="slide-page closing-page" style="--accent:${attr(project.meta.accent)}">
       ${headerMarkup(project, page)}
-      <div class="closing-mark" aria-hidden="true">“</div>
       <div class="slide-body closing-body">
-        ${kickerMarkup(page.kicker || 'CLOSING', null, 0)}
+        ${kickerMarkup(page.kicker || '', null, 0)}
         ${titleMarkup(page.title || '写在最后', '')}
         <div class="prose closing-copy">${body}</div>
         ${signoff ? `<div class="closing-signoff">${esc(signoff)}</div>` : ''}
@@ -241,7 +241,12 @@
     if (!asset) return '';
     const caption = String(page.imageCaption || '').trim();
     const width = U.clamp(Number(page.imageWidth) || 100, 25, 100);
-    return `<figure class="${className}"><img src="${attr(asset.data)}" data-hero-image="1" style="max-width:${width}%" alt="${attr(caption || asset.name || '题解插图')}">${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
+    const height = U.clamp(Number(page.imageHeight) || 100, 20, 200);
+    const naturalWidth = Number(asset.width) || 0;
+    const naturalHeight = Number(asset.height) || 0;
+    const aspect = naturalWidth > 0 && naturalHeight > 0 ? `;aspect-ratio:${(naturalWidth / naturalHeight) / (height / 100)}` : '';
+    const stretch = height === 100 ? '' : ';max-height:none;object-fit:fill';
+    return `<figure class="${className}"><img src="${attr(asset.data)}" data-hero-image="1" style="width:${width}%${aspect}${stretch}" alt="${attr(caption || asset.name || '题解插图')}">${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
   }
 
   function solutionMarkup(project, page, pageNo, preview) {
