@@ -56,6 +56,9 @@
             <button type="button" data-add-page="solution">在题目下添加解法页</button>
             <button type="button" data-add-page="custom">添加自定义页</button>
             <button type="button" data-add-page="agenda">添加题目目录页</button>
+            <div class="popover-sep"></div>
+            <button type="button" data-add-page="thanks">添加致谢页</button>
+            <button type="button" data-add-page="closing">添加结语页</button>
           </div>
         </div>
       </div>
@@ -201,12 +204,12 @@ git push -u origin main</pre><button class="btn btn-ghost btn-small" id="copy-de
     <form method="dialog" class="modal-card modal-wide">
       <div class="modal-head"><div><span class="eyebrow">GUIDE</span><h2>使用说明</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
       <div class="help-grid">
-        <section><h3>1. 先搭结构</h3><p>「＋ 题目」会同时创建题目页和一页解法。左侧结构可以添加解法页、自定义页和题目目录页。每道题自动编号，页眉进度点会标出当前题。</p></section>
+        <section><h3>1. 先搭结构</h3><p>「＋ 题目」会同时创建题目页和一页解法。左侧结构可以添加解法页、自定义页、题目目录页，以及独立的「致谢」和「结语」收尾页。每道题自动编号，页眉进度点会标出当前题。</p></section>
         <section><h3>2. 写 Markdown</h3><p>正文支持标题、列表、引用、表格、代码块、<code>**粗体**</code>、<code>==高亮==</code> 和链接。行内公式写 <code>$...$</code>，独立公式写 <code>$$...$$</code>；工具用 KaTeX 离线渲染。</p></section>
         <section><h3>3. 插图片</h3><p>在正文工具栏点图片按钮，上传后插入 <code>![图注](asset:id)</code>；也可以把截图直接粘贴或拖进编辑区。图文页可以在右侧放一张主图。</p></section>
         <section><h3>4. 检查页面</h3><p>预览会提示内容是否可能超出 16:9。出现提示时，精简文字、把推导拆到下一页，或改用通栏 / 图文布局。</p></section>
         <section><h3>5. 导出 PDF</h3><p>点右上角「导出 PDF」，在打印窗口选择「另存为 PDF」、边距无、关闭页眉页脚并开启背景图形。每页固定为 960 × 540 pt。</p></section>
-        <section><h3>6. 分享与部署</h3><p>「导出 JSON」可以备份和交换工程；「部署」里有 GitHub Pages 的三步说明。工具没有后端，所有人的草稿都存在自己的浏览器里。</p></section>
+        <section><h3>6. 分享与部署</h3><p>「导出 JSON」可以备份和交换工程；「部署」里有 GitHub Pages 的三步说明。工具没有后端，所有人的草稿都存在自己的浏览器里。致谢页可以分别填写出题组、验题人、志愿者、参赛选手和教练老师；结语页适合写赛后的碎碎念。</p></section>
       </div>
       <div class="shortcuts">
         <span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd> 保存</span>

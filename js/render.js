@@ -160,6 +160,54 @@
     </article>`;
   }
 
+  function thanksMarkup(project, page, pageNo, preview) {
+    const groups = TX.model.THANKS_GROUPS.map((group, index) => {
+      const value = String((page.thanks || {})[group.key] || '').trim();
+      const content = value
+        ? TX.markdown.render(value, project)
+        : (preview ? '<p class="empty-copy">填写名单或感谢语</p>' : '<p class="thanks-blank">—</p>');
+      return `<section class="thanks-item${index === 4 ? ' thanks-wide' : ''}">
+        <div class="thanks-head"><span class="thanks-no">0${index + 1}</span><h3>${esc(group.label)}</h3><span class="thanks-en">${esc(group.en)}</span></div>
+        <div class="prose thanks-copy">${content}</div>
+      </section>`;
+    }).join('');
+    const intro = String(page.intro || '').trim()
+      ? TX.markdown.render(page.intro, project)
+      : (preview ? '<p class="empty-copy">写一句总起，感谢所有让比赛发生的人。</p>' : '');
+    const outro = String(page.outro || '').trim()
+      ? TX.markdown.render(page.outro, project)
+      : '';
+    return `<article class="slide-page thanks-page" style="--accent:${attr(project.meta.accent)}">
+      ${headerMarkup(project, page)}
+      <div class="slide-body thanks-body">
+        ${kickerMarkup(page.kicker || 'ACKNOWLEDGEMENTS', null, 0)}
+        ${titleMarkup(page.title || '致谢', '')}
+        <div class="prose thanks-intro">${intro}</div>
+        <div class="thanks-grid">${groups}</div>
+        ${outro ? `<div class="prose thanks-outro">${outro}</div>` : ''}
+      </div>
+      ${footerMarkup(project, pageNo)}
+    </article>`;
+  }
+
+  function closingMarkup(project, page, pageNo, preview) {
+    const body = String(page.body || '').trim()
+      ? TX.markdown.render(page.body, project)
+      : (preview ? '<p class="empty-copy">写一点赛后想说的话：可以是对失利的安慰，也可以是对下一程的祝愿。</p>' : '');
+    const signoff = String(page.signoff || '').trim();
+    return `<article class="slide-page closing-page" style="--accent:${attr(project.meta.accent)}">
+      ${headerMarkup(project, page)}
+      <div class="closing-mark" aria-hidden="true">“</div>
+      <div class="slide-body closing-body">
+        ${kickerMarkup(page.kicker || 'CLOSING', null, 0)}
+        ${titleMarkup(page.title || '写在最后', '')}
+        <div class="prose closing-copy">${body}</div>
+        ${signoff ? `<div class="closing-signoff">${esc(signoff)}</div>` : ''}
+      </div>
+      ${footerMarkup(project, pageNo)}
+    </article>`;
+  }
+
   function problemMarkup(project, page, pageNo, preview) {
     const problem = pageProblem(project, page);
     if (!problem) return coverMarkup(project, pageNo, preview);
@@ -237,13 +285,15 @@
     const preview = Boolean(options.preview);
     if (page.type === 'cover') return coverMarkup(project, pageNo, preview);
     if (page.type === 'agenda') return agendaMarkup(project, page, pageNo, preview);
+    if (page.type === 'thanks') return thanksMarkup(project, page, pageNo, preview);
+    if (page.type === 'closing') return closingMarkup(project, page, pageNo, preview);
     if (page.type === 'problem') return problemMarkup(project, page, pageNo, preview);
     return solutionMarkup(project, page, pageNo, preview);
   };
 
   R.hydrate = (root, project) => {
     if (!root) return;
-    root.querySelectorAll('.prose, .agenda-intro, .slide-complexity, .constraint-block').forEach((element) => {
+    root.querySelectorAll('.prose, .agenda-intro, .slide-complexity, .constraint-block, .thanks-intro, .thanks-copy, .thanks-outro, .closing-copy').forEach((element) => {
       // Markdown content was already rendered to HTML; only finish assets and math.
       TX.markdown.hydrate(element, project);
     });

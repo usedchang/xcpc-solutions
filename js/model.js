@@ -6,7 +6,17 @@
   const M = TX.model = {};
 
   const VERSION = 2;
-  const PAGE_TYPES = ['cover', 'agenda', 'problem', 'solution', 'custom'];
+  const PAGE_TYPES = ['cover', 'agenda', 'problem', 'solution', 'custom', 'thanks', 'closing'];
+  const THANKS_GROUPS = [
+    { key: 'setters', label: '出题组', en: 'PROBLEM SETTERS' },
+    { key: 'testers', label: '验题人', en: 'TESTERS' },
+    { key: 'volunteers', label: '志愿者', en: 'VOLUNTEERS' },
+    { key: 'contestants', label: '参赛选手', en: 'CONTESTANTS' },
+    { key: 'coaches', label: '教练与带队老师', en: 'COACHES & TEACHERS' }
+  ];
+  const THANKS_INTRO = '一场比赛从题目构思到最终榜单，离不开许多人的投入。';
+  const THANKS_OUTRO = '谢谢每一位让这场比赛发生的人。';
+  const CLOSING_BODY = '无论你处在竞赛的哪个阶段，没有发挥出理想成绩都是一件自然的事。\n\n一次比赛的结果，不能定义你走过的路，也不能预支你未来的上限。把它当作一次反馈，而不是一次判决。复盘、休息、再出发。\n\n愿你始终保留对算法的好奇，也记得在赛场之外照顾好自己。';
   const LAYOUTS = ['split', 'single', 'visual', 'figure'];
   const DB_NAME = 'tixie-studio';
   const DB_STORE = 'state';
@@ -67,11 +77,47 @@
     };
   }
 
+  function defaultThanks() {
+    return {
+      setters: 'Problem Setting Group',
+      testers: '全体验题人',
+      volunteers: '赛事志愿者',
+      contestants: '所有参赛选手',
+      coaches: '各校教练与带队老师'
+    };
+  }
+
+  function thanksPage() {
+    return {
+      id: U.uid('page'),
+      type: 'thanks',
+      kicker: 'ACKNOWLEDGEMENTS',
+      title: '致谢',
+      intro: THANKS_INTRO,
+      thanks: defaultThanks(),
+      outro: THANKS_OUTRO
+    };
+  }
+
+  function closingPage() {
+    return {
+      id: U.uid('page'),
+      type: 'closing',
+      kicker: 'CLOSING',
+      title: '写在最后',
+      body: CLOSING_BODY,
+      signoff: '题解组'
+    };
+  }
+
   M.PAGE_TYPES = PAGE_TYPES;
   M.LAYOUTS = LAYOUTS;
+  M.THANKS_GROUPS = THANKS_GROUPS;
   M.coverPage = coverPage;
   M.problemPage = problemPage;
   M.solutionPage = solutionPage;
+  M.thanksPage = thanksPage;
+  M.closingPage = closingPage;
 
   M.createProblem = (code, name) => DEFAULT_PROBLEM(code, name);
 
@@ -208,6 +254,35 @@
           let problemId = asString(page.problemId);
           if (!problemMap.has(problemId)) problemId = problems[0].id;
           return { id, type, problemId };
+        }
+        if (type === 'thanks') {
+          const incoming = page.thanks && typeof page.thanks === 'object' ? page.thanks : {};
+          const defaults = defaultThanks();
+          const thanks = {};
+          for (const group of THANKS_GROUPS) {
+            thanks[group.key] = Object.prototype.hasOwnProperty.call(incoming, group.key)
+              ? asString(incoming[group.key])
+              : defaults[group.key];
+          }
+          return {
+            id,
+            type,
+            kicker: asString(page.kicker || 'ACKNOWLEDGEMENTS'),
+            title: asString(page.title || '致谢'),
+            intro: Object.prototype.hasOwnProperty.call(page, 'intro') ? asString(page.intro) : THANKS_INTRO,
+            thanks,
+            outro: Object.prototype.hasOwnProperty.call(page, 'outro') ? asString(page.outro) : THANKS_OUTRO
+          };
+        }
+        if (type === 'closing') {
+          return {
+            id,
+            type,
+            kicker: asString(page.kicker || 'CLOSING'),
+            title: asString(page.title || '写在最后'),
+            body: Object.prototype.hasOwnProperty.call(page, 'body') ? asString(page.body) : CLOSING_BODY,
+            signoff: Object.prototype.hasOwnProperty.call(page, 'signoff') ? asString(page.signoff) : '题解组'
+          };
         }
         let problemId = asString(page.problemId);
         if (type === 'custom') {
@@ -456,6 +531,8 @@
     if (!page) return '';
     if (page.type === 'cover') return '封面';
     if (page.type === 'agenda') return page.title || '题目一览';
+    if (page.type === 'thanks') return page.title || '致谢';
+    if (page.type === 'closing') return page.title || '写在最后';
     if (page.type === 'custom') return page.title || '自定义页';
     const problem = M.problemById(project, page.problemId);
     const code = problem ? problem.code : '';
@@ -469,6 +546,8 @@
     if (page.type === 'agenda') return 'AGENDA';
     if (page.type === 'problem') return 'PROBLEM';
     if (page.type === 'solution') return 'SOLUTION';
+    if (page.type === 'thanks') return 'ACKNOWLEDGEMENTS';
+    if (page.type === 'closing') return 'CLOSING';
     return 'NOTE';
   };
 

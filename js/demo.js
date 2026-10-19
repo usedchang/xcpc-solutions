@@ -127,6 +127,29 @@
         complexity: '总时间复杂度 $O(n\\log n)$，空间复杂度 $O(n)$。',
         imageId: '',
         imageCaption: ''
+      },
+      {
+        id: 'demo-thanks',
+        type: 'thanks',
+        kicker: 'ACKNOWLEDGEMENTS',
+        title: '致谢',
+        intro: '一场比赛从题目构思到最终榜单，离不开许多人的投入。',
+        thanks: {
+          setters: 'Problem Setting Group\n题面、数据与标程',
+          testers: '验题组\n交叉验题与难度评估',
+          volunteers: '赛事志愿者\n现场与线上支持',
+          contestants: '所有参赛选手\n感谢你们带来的精彩比赛',
+          coaches: '各校教练与带队老师\n感谢长期以来的指导与陪伴'
+        },
+        outro: '谢谢每一位让这场比赛发生的人。'
+      },
+      {
+        id: 'demo-closing',
+        type: 'closing',
+        kicker: 'CLOSING',
+        title: '写在最后',
+        body: '无论你处在竞赛的哪个阶段，没有发挥出理想成绩都是一件自然的事。\n\n一次比赛的结果，不能定义你走过的路，也不能预支你未来的上限。把它当作一次反馈，而不是一次判决。复盘、休息、再出发。\n\n愿你始终保留对算法的好奇，也记得在赛场之外照顾好自己。',
+        signoff: '题解组'
       }
     ],
     assets: [

@@ -129,6 +129,8 @@
     if (!page) return '';
     if (page.type === 'cover') return '封面 / 赛事信息';
     if (page.type === 'agenda') return '题目目录';
+    if (page.type === 'thanks') return '致谢 / 鸣谢';
+    if (page.type === 'closing') return '结语 / 写在最后';
     if (page.type === 'problem') return '题目页';
     if (page.type === 'solution') return `解法页 · ${layoutLabel(page.layout)}`;
     return `自定义页 · ${layoutLabel(page.layout)}`;
@@ -137,6 +139,8 @@
   function pageIcon(page) {
     if (page.type === 'cover') return 'C';
     if (page.type === 'agenda') return '目';
+    if (page.type === 'thanks') return '谢';
+    if (page.type === 'closing') return '终';
     if (page.type === 'custom') return '§';
     const problem = M.problemById(state.project, page.problemId);
     const code = problem ? problem.code : '?';
@@ -163,6 +167,8 @@
       eyebrow = 'PROBLEM';
       title = problem ? `${problem.code} · ${problem.name}` : '题目';
     } else if (page.type === 'agenda') { eyebrow = 'AGENDA'; title = page.title || '题目一览'; }
+    else if (page.type === 'thanks') { eyebrow = page.kicker || 'ACKNOWLEDGEMENTS'; title = page.title || '致谢'; }
+    else if (page.type === 'closing') { eyebrow = page.kicker || 'CLOSING'; title = page.title || '写在最后'; }
     else if (page.type === 'solution') { eyebrow = page.kicker || 'SOLUTION'; title = page.title || '解法页'; }
     else { eyebrow = page.kicker || 'NOTE'; title = page.title || '自定义页'; }
     $('#editor-eyebrow').textContent = eyebrow;
@@ -181,7 +187,9 @@
         'outline-item',
         active ? 'active' : '',
         page.type === 'cover' ? 'is-cover' : '',
-        page.type === 'problem' ? 'is-problem' : ''
+        page.type === 'problem' ? 'is-problem' : '',
+        page.type === 'thanks' ? 'is-thanks' : '',
+        page.type === 'closing' ? 'is-closing' : ''
       ].filter(Boolean).join(' ');
       const label = page.type === 'cover'
         ? '封面'
@@ -220,7 +228,7 @@
     const frame = $('#preview-frame');
     const page = activePage();
     if (!frame || !page) return;
-    const nodes = $$('.slide-body, .solution-layout, .solution-copy, .problem-main, .problem-statement, .problem-aside, .agenda-grid', frame);
+    const nodes = $$('.slide-body, .solution-layout, .solution-copy, .problem-main, .problem-statement, .problem-aside, .agenda-grid, .thanks-grid, .thanks-copy, .closing-copy', frame);
     const overflow = nodes.some((node) => {
       const style = window.getComputedStyle(node);
       if (style.display === 'none' || node.clientHeight <= 0) return false;
@@ -322,7 +330,7 @@
 
   function pageTools(page) {
     const isCover = page.type === 'cover';
-    const canDuplicate = page.type === 'solution' || page.type === 'custom' || page.type === 'agenda';
+    const canDuplicate = ['solution', 'custom', 'agenda', 'thanks', 'closing'].includes(page.type);
     if (isCover) return '';
     return `<div class="page-tools">
       <button type="button" data-page-action="up">↑ 上移</button>
@@ -360,6 +368,54 @@
       ${inputField('标题', 'page.title', page.title, { placeholder: '题目一览' })}
       ${textareaField('说明文字（可选）', 'page.intro', page.intro, { rows: 4, className: 'short', meta: 'Markdown', placeholder: '本场题解按题目顺序编排。' })}
       <div class="editor-help"><strong>自动目录</strong><br>题目名称、难度和题解页数会自动从工程里读取；不需要手动维护列表。</div>
+      ${pageTools(page)}
+    `;
+  }
+
+  function renderThanksEditor(page) {
+    const thanks = page.thanks || {};
+    const groups = M.THANKS_GROUPS.map((group) => textareaField(
+      `${group.label} · ${group.en}`,
+      `page.thanks.${group.key}`,
+      thanks[group.key] || '',
+      {
+        rows: 2,
+        className: 'short',
+        meta: '名单 / 感谢语',
+        placeholder: `填写${group.label}的名单，或写一句感谢`
+      }
+    )).join('');
+    $('#editor-fields').innerHTML = `
+      ${sectionDivider('ACKNOWLEDGEMENTS PAGE')}
+      <div class="field-grid">
+        ${inputField('眉题', 'page.kicker', page.kicker, { placeholder: 'ACKNOWLEDGEMENTS' })}
+        ${inputField('标题', 'page.title', page.title, { placeholder: '致谢' })}
+      </div>
+      ${textareaField('总起说明（可选）', 'page.intro', page.intro, { rows: 3, meta: 'Markdown', placeholder: '一场比赛从题目构思到最终榜单，离不开许多人的投入。' })}
+      ${sectionDivider('PEOPLE TO THANK')}
+      ${groups}
+      ${textareaField('收束语（可选）', 'page.outro', page.outro, { rows: 2, meta: 'Markdown', placeholder: '谢谢每一位让这场比赛发生的人。' })}
+      <div class="editor-help"><strong>单独成页的致谢</strong><br>五个对象会按「出题组 / 验题人 / 志愿者 / 参赛选手 / 教练与带队老师」排成一组。每个输入框支持换行，也可以写一句具体的感谢。</div>
+      ${pageTools(page)}
+    `;
+  }
+
+  function renderClosingEditor(page) {
+    $('#editor-fields').innerHTML = `
+      ${sectionDivider('CLOSING PAGE')}
+      <div class="field-grid">
+        ${inputField('眉题', 'page.kicker', page.kicker, { placeholder: 'CLOSING' })}
+        ${inputField('标题', 'page.title', page.title, { placeholder: '写在最后' })}
+      </div>
+      ${textareaField('想说的话', 'page.body', page.body, {
+        rows: 10,
+        className: 'tall',
+        meta: 'Markdown + TeX',
+        toolbar: true,
+        placeholder: '无论你处在竞赛的哪个阶段，没有发挥出理想成绩都是一件自然的事……'
+      })}
+      ${inputField('署名（可选）', 'page.signoff', page.signoff, { placeholder: '题解组' })}
+      <div class="editor-help"><strong>给读者的收尾</strong><br>这一页适合写赛后的碎碎念：安慰失利的选手，感谢坚持的教练，也可以只留一句「下一场见」。语气不必端着，真诚比工整重要。</div>
       ${pageTools(page)}
     `;
   }
@@ -450,6 +506,8 @@
     updateEditorHead();
     if (page.type === 'cover') renderCoverEditor();
     else if (page.type === 'agenda') renderAgendaEditor(page);
+    else if (page.type === 'thanks') renderThanksEditor(page);
+    else if (page.type === 'closing') renderClosingEditor(page);
     else if (page.type === 'problem') renderProblemEditor(page);
     else renderSolutionEditor(page);
   }
@@ -936,6 +994,29 @@
     showToast('已添加题目目录页。');
   }
 
+  function addThanksPage() {
+    const page = M.thanksPage();
+    // Keep the closing page last if one already exists.
+    const closingIndex = state.project.pages.findIndex((item) => item.type === 'closing');
+    if (closingIndex >= 0) state.project.pages.splice(closingIndex, 0, page);
+    else state.project.pages.push(page);
+    state.activePageId = page.id;
+    markDirty();
+    renderAll();
+    focusField('page.thanks.setters');
+    showToast('已添加独立的致谢页，五个感谢对象都可以单独填写。');
+  }
+
+  function addClosingPage() {
+    const page = M.closingPage();
+    state.project.pages.push(page);
+    state.activePageId = page.id;
+    markDirty();
+    renderAll();
+    focusField('page.title');
+    showToast('已添加结语页，可以写赛后的碎碎念了。');
+  }
+
   async function deletePage(page) {
     if (!page) return;
     if (page.type === 'cover') {
@@ -1085,7 +1166,7 @@
     if (meta.authors.trim()) return true;
     if ((state.project.assets || []).length) return true;
     return (state.project.pages || []).some((page) => {
-      if (page.type === 'agenda') return true;
+      if (page.type === 'agenda' || page.type === 'thanks' || page.type === 'closing') return true;
       if (page.type === 'custom') return Boolean((page.title || '').trim() || (page.left || '').trim() || (page.right || '').trim() || page.imageId);
       if (page.type === 'solution') return Boolean((page.title || '').trim() !== '核心观察' || (page.left || '').trim() || (page.right || '').trim() || page.imageId || (page.complexity || '').trim());
       if (page.type === 'problem') {
@@ -1255,6 +1336,8 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
       if (button.dataset.addPage === 'solution') addSolutionPage();
       else if (button.dataset.addPage === 'custom') addCustomPage();
       else if (button.dataset.addPage === 'agenda') addAgendaPage();
+      else if (button.dataset.addPage === 'thanks') addThanksPage();
+      else if (button.dataset.addPage === 'closing') addClosingPage();
     });
     $('#demo-button').addEventListener('click', loadDemo);
     $('#new-button').addEventListener('click', newProject);
@@ -1378,28 +1461,35 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
     const path = target.dataset.bind;
     if (!path) return;
     const parts = path.split('.');
+    const scope = parts[0];
     const value = target.type === 'checkbox' ? target.checked : target.value;
     let object = null;
-    let key = parts[1];
-    if (parts[0] === 'meta') object = state.project.meta;
-    else if (parts[0] === 'problem') object = currentProblem();
-    else if (parts[0] === 'page') object = activePage();
-    if (!object || !key) return;
+    if (scope === 'meta') object = state.project.meta;
+    else if (scope === 'problem') object = currentProblem();
+    else if (scope === 'page') object = activePage();
+    if (!object) return;
+    for (let index = 1; index < parts.length - 1; index += 1) {
+      const segment = parts[index];
+      if (!object[segment] || typeof object[segment] !== 'object' || Array.isArray(object[segment])) object[segment] = {};
+      object = object[segment];
+    }
+    const key = parts[parts.length - 1];
+    if (!key) return;
     object[key] = value;
-    if (parts[0] === 'meta' && key === 'showDots') object[key] = Boolean(value);
-    if (parts[0] === 'meta') {
+    if (scope === 'meta' && key === 'showDots') object[key] = Boolean(value);
+    if (scope === 'meta') {
       updateProjectChrome();
       renderSidebar();
     }
-    if (parts[0] === 'problem') {
+    if (scope === 'problem') {
       renderSidebar();
       updateEditorHead();
     }
-    if (parts[0] === 'page' && key === 'title') {
+    if (scope === 'page' && (key === 'title' || key === 'kicker')) {
       renderSidebar();
       updateEditorHead();
     }
-    if (parts[0] === 'page' && key === 'imageId') {
+    if (scope === 'page' && key === 'imageId') {
       renderEditor();
     }
     markDirty();

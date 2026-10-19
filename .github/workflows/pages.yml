@@ -32,9 +32,9 @@ jobs:
           mkdir -p _site
           cp index.html styles.css README.md LICENSE THIRD_PARTY_NOTICES.md .nojekyll _site/
           cp -R js vendor assets examples _site/
-          if [ -f docs/preview.png ]; then
+          if [ -d docs ]; then
             mkdir -p _site/docs
-            cp docs/preview.png _site/docs/
+            cp docs/*.png _site/docs/
           fi
 
       - name: Upload Pages artifact
