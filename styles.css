@@ -201,6 +201,13 @@ code, pre, kbd { font-family: var(--mono); }
 .field-label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; color: #627179; font-size: 10px; font-weight: 600; }
 .field-label em { color: #a6afb0; font-size: 8.5px; font-style: normal; font-weight: 400; }
 .field-label .label-tools { display: flex; align-items: center; gap: 6px; }
+.field-label label { color: inherit; cursor: pointer; }
+.mini-link {
+  padding: 0; border: 0; color: var(--accent); background: none;
+  font-size: 8.5px; font-weight: 500; text-decoration: underline;
+  text-decoration-thickness: 1px; text-underline-offset: 2px; cursor: pointer;
+}
+.mini-link:hover { color: var(--accent-dark); }
 .field input, .field textarea, .field select {
   width: 100%; border: 1px solid #e2e7e2; border-radius: 5px; outline: none;
   color: #253941; background: #ffffff; font-size: 11.5px;
@@ -475,14 +482,19 @@ body.focus-preview .preview-foot { min-height: 25px; }
 .thanks-intro { max-width: 82%; margin: .1cqw 0 1.55cqw; color: #5d707a; font-size: 1.17cqw; line-height: 1.72; }
 .thanks-intro p { margin: 0 0 .35em; }
 .thanks-grid {
-  flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start; gap: 1.3cqw 4.5%;
+  flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start; gap: 1.15cqw 3.1%;
 }
-.thanks-item { min-width: 0; padding-top: 1.05cqw; border-top: 1px solid #e2e9ec; }
-.thanks-item.thanks-wide {
-  grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr);
-  column-gap: 3cqw; align-items: baseline;
+.thanks-item { min-width: 0; padding-top: .95cqw; border-top: 1px solid #e2e9ec; }
+.thanks-order-note {
+  display: inline-flex; align-self: flex-start; align-items: center; gap: .42cqw;
+  margin: -.35cqw 0 1.05cqw; padding: .18cqw .7cqw;
+  border: 1px solid #dce7eb; border-radius: 2cqw;
+  color: #60757e; background: #f6fafb; font-size: .83cqw; letter-spacing: .02em;
 }
+.thanks-order-note i { width: .36cqw; height: .36cqw; flex: none; border-radius: 50%; background: var(--accent); opacity: .65; }
+.thanks-item.thanks-special { border-top-color: #ddc79b; }
+.thanks-item.thanks-special .thanks-no { color: #a97824; }
 .thanks-head { display: flex; align-items: baseline; gap: .55cqw; min-width: 0; }
 .thanks-no { color: var(--accent); font-family: var(--mono); font-size: .68cqw; font-weight: 700; letter-spacing: .08em; }
 .thanks-head h3 { margin: 0; color: #18384d; font-size: 1.06cqw; font-weight: 700; white-space: nowrap; }
@@ -490,10 +502,9 @@ body.focus-preview .preview-foot { min-height: 25px; }
 .thanks-copy { margin-top: .52cqw; color: #4b6069; font-size: 1.01cqw; line-height: 1.62; }
 .thanks-copy p { margin: 0 0 .12em; }
 .thanks-copy p:last-child { margin-bottom: 0; }
-.thanks-wide .thanks-copy { margin-top: 0; }
 .thanks-blank { color: #b5c0c2; }
 .thanks-outro {
-  flex: none; margin-top: 1.35cqw; padding-top: .8cqw; border-top: 1px solid #e2e9ec;
+  flex: none; margin-top: auto; padding-top: .8cqw; border-top: 1px solid #e2e9ec;
   color: var(--accent); font-size: 1.1cqw; font-weight: 600;
 }
 .thanks-outro p { margin: 0; }

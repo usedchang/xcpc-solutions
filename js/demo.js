@@ -134,12 +134,14 @@
         kicker: 'ACKNOWLEDGEMENTS',
         title: '致谢',
         intro: '一场比赛从题目构思到最终榜单，离不开许多人的投入。',
+        thanksNote: '排名不分先后',
         thanks: {
           setters: 'Problem Setting Group\n题面、数据与标程',
           testers: '验题组\n交叉验题与难度评估',
           volunteers: '赛事志愿者\n现场与线上支持',
           contestants: '所有参赛选手\n感谢你们带来的精彩比赛',
-          coaches: '各校教练与带队老师\n感谢长期以来的指导与陪伴'
+          coaches: '各校教练与带队老师\n感谢长期以来的指导与陪伴',
+          special: '所有未能一一具名的朋友\n以及屏幕前的你'
         },
         outro: '谢谢每一位让这场比赛发生的人。'
       },

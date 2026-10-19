@@ -372,19 +372,22 @@
     `;
   }
 
+  function thanksField(group, value) {
+    const bind = `page.thanks.${group.key}`;
+    const id = fieldId(bind);
+    return `<div class="field">
+      <div class="field-label">
+        <label for="${id}">${escape(group.label)} · ${escape(group.en)}</label>
+        <span class="label-tools"><button type="button" class="mini-link" data-thanks-normalize="${attr(group.key)}" title="把顿号、逗号分隔的名字拆成每行一个">整理名单</button><em>名单 / 感谢语</em></span>
+      </div>
+      <textarea id="${id}" data-bind="${bind}" class="short" rows="2" placeholder="用「、」或换行填写${escape(group.label)}名单，也可以补一句感谢">${escape(value)}</textarea>
+      <p class="field-hint">名字可以用「、」「,」或换行分隔；点「整理名单」会拆成每行一个。</p>
+    </div>`;
+  }
+
   function renderThanksEditor(page) {
     const thanks = page.thanks || {};
-    const groups = M.THANKS_GROUPS.map((group) => textareaField(
-      `${group.label} · ${group.en}`,
-      `page.thanks.${group.key}`,
-      thanks[group.key] || '',
-      {
-        rows: 2,
-        className: 'short',
-        meta: '名单 / 感谢语',
-        placeholder: `填写${group.label}的名单，或写一句感谢`
-      }
-    )).join('');
+    const groups = M.THANKS_GROUPS.map((group) => thanksField(group, thanks[group.key] || '')).join('');
     $('#editor-fields').innerHTML = `
       ${sectionDivider('ACKNOWLEDGEMENTS PAGE')}
       <div class="field-grid">
@@ -392,12 +395,40 @@
         ${inputField('标题', 'page.title', page.title, { placeholder: '致谢' })}
       </div>
       ${textareaField('总起说明（可选）', 'page.intro', page.intro, { rows: 3, meta: 'Markdown', placeholder: '一场比赛从题目构思到最终榜单，离不开许多人的投入。' })}
+      ${inputField('名单说明', 'page.thanksNote', page.thanksNote, { placeholder: '排名不分先后' })}
+      <div class="editor-help"><strong>名单填写</strong><br>名单说明默认是「排名不分先后」，会显示在名单上方；清空就不再显示。各组都可以直接粘贴姓名，用顿号、逗号或换行分隔。</div>
       ${sectionDivider('PEOPLE TO THANK')}
       ${groups}
       ${textareaField('收束语（可选）', 'page.outro', page.outro, { rows: 2, meta: 'Markdown', placeholder: '谢谢每一位让这场比赛发生的人。' })}
-      <div class="editor-help"><strong>单独成页的致谢</strong><br>五个对象会按「出题组 / 验题人 / 志愿者 / 参赛选手 / 教练与带队老师」排成一组。每个输入框支持换行，也可以写一句具体的感谢。</div>
+      <div class="editor-help"><strong>单独成页的致谢</strong><br>五个固定感谢对象，外加一个「特别鸣谢」。每个输入框支持换行，也可以写一句具体的感谢。</div>
       ${pageTools(page)}
     `;
+  }
+
+  function normalizeThanksNames(key) {
+    const page = activePage();
+    if (!page || page.type !== 'thanks') return;
+    if (!M.THANKS_GROUPS.some((group) => group.key === key)) return;
+    const raw = String((page.thanks || {})[key] || '');
+    if (!raw.trim()) {
+      showToast('先填写这一组的名单。');
+      return;
+    }
+    const names = raw.split(/[、,，;；\n]+/).map((name) => name.trim()).filter(Boolean);
+    if (!page.thanks) page.thanks = {};
+    page.thanks[key] = names.join('\n');
+    markDirty();
+    const scroll = $('#editor-fields').scrollTop;
+    renderEditor();
+    $('#editor-fields').scrollTop = scroll;
+    const field = document.querySelector(`[data-bind="page.thanks.${key}"]`);
+    if (field) {
+      state.lastTextareaId = field.id;
+      field.focus();
+      field.setSelectionRange(field.value.length, field.value.length);
+    }
+    previewSoon();
+    showToast(`已整理为 ${names.length} 行名单。`);
   }
 
   function renderClosingEditor(page) {
@@ -1397,6 +1428,11 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
       if (command) {
         const toolbar = command.closest('[data-toolbar-target]');
         if (toolbar) markdownCommand(command.dataset.cmd, toolbar.dataset.toolbarTarget);
+        return;
+      }
+      const normalizeNames = event.target.closest('[data-thanks-normalize]');
+      if (normalizeNames) {
+        normalizeThanksNames(normalizeNames.dataset.thanksNormalize);
         return;
       }
       const pageAction = event.target.closest('[data-page-action]');

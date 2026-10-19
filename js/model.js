@@ -12,10 +12,12 @@
     { key: 'testers', label: '验题人', en: 'TESTERS' },
     { key: 'volunteers', label: '志愿者', en: 'VOLUNTEERS' },
     { key: 'contestants', label: '参赛选手', en: 'CONTESTANTS' },
-    { key: 'coaches', label: '教练与带队老师', en: 'COACHES & TEACHERS' }
+    { key: 'coaches', label: '教练与带队老师', en: 'COACHES & TEACHERS' },
+    { key: 'special', label: '特别鸣谢', en: 'SPECIAL THANKS' }
   ];
   const THANKS_INTRO = '一场比赛从题目构思到最终榜单，离不开许多人的投入。';
   const THANKS_OUTRO = '谢谢每一位让这场比赛发生的人。';
+  const THANKS_NOTE = '排名不分先后';
   const CLOSING_BODY = '无论你处在竞赛的哪个阶段，没有发挥出理想成绩都是一件自然的事。\n\n一次比赛的结果，不能定义你走过的路，也不能预支你未来的上限。把它当作一次反馈，而不是一次判决。复盘、休息、再出发。\n\n愿你始终保留对算法的好奇，也记得在赛场之外照顾好自己。';
   const LAYOUTS = ['split', 'single', 'visual', 'figure'];
   const DB_NAME = 'tixie-studio';
@@ -83,7 +85,8 @@
       testers: '全体验题人',
       volunteers: '赛事志愿者',
       contestants: '所有参赛选手',
-      coaches: '各校教练与带队老师'
+      coaches: '各校教练与带队老师',
+      special: ''
     };
   }
 
@@ -94,6 +97,7 @@
       kicker: 'ACKNOWLEDGEMENTS',
       title: '致谢',
       intro: THANKS_INTRO,
+      thanksNote: THANKS_NOTE,
       thanks: defaultThanks(),
       outro: THANKS_OUTRO
     };
@@ -270,6 +274,7 @@
             kicker: asString(page.kicker || 'ACKNOWLEDGEMENTS'),
             title: asString(page.title || '致谢'),
             intro: Object.prototype.hasOwnProperty.call(page, 'intro') ? asString(page.intro) : THANKS_INTRO,
+            thanksNote: Object.prototype.hasOwnProperty.call(page, 'thanksNote') ? asString(page.thanksNote) : THANKS_NOTE,
             thanks,
             outro: Object.prototype.hasOwnProperty.call(page, 'outro') ? asString(page.outro) : THANKS_OUTRO
           };

@@ -166,7 +166,7 @@
       const content = value
         ? TX.markdown.render(value, project)
         : (preview ? '<p class="empty-copy">填写名单或感谢语</p>' : '<p class="thanks-blank">—</p>');
-      return `<section class="thanks-item${index === 4 ? ' thanks-wide' : ''}">
+      return `<section class="thanks-item${group.key === 'special' ? ' thanks-special' : ''}">
         <div class="thanks-head"><span class="thanks-no">0${index + 1}</span><h3>${esc(group.label)}</h3><span class="thanks-en">${esc(group.en)}</span></div>
         <div class="prose thanks-copy">${content}</div>
       </section>`;
@@ -183,6 +183,7 @@
         ${kickerMarkup(page.kicker || 'ACKNOWLEDGEMENTS', null, 0)}
         ${titleMarkup(page.title || '致谢', '')}
         <div class="prose thanks-intro">${intro}</div>
+        ${String(page.thanksNote || '').trim() ? `<div class="thanks-order-note"><i></i>${esc(page.thanksNote)}</div>` : ''}
         <div class="thanks-grid">${groups}</div>
         ${outro ? `<div class="prose thanks-outro">${outro}</div>` : ''}
       </div>
