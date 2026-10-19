@@ -898,7 +898,7 @@
   }
 
   function addCustomPage() {
-    const problem = currentProblemOrFirst();
+    const problem = currentProblem();
     const page = {
       id: U.uid('page'),
       type: 'custom',

@@ -210,7 +210,11 @@
           return { id, type, problemId };
         }
         let problemId = asString(page.problemId);
-        if (!problemMap.has(problemId)) problemId = problems[0].id;
+        if (type === 'custom') {
+          if (problemId && !problemMap.has(problemId)) problemId = '';
+        } else if (!problemMap.has(problemId)) {
+          problemId = problems[0].id;
+        }
         let imageId = asString(page.imageId);
         if (!assetIds.has(imageId) && !assets.some((asset) => asset.id === imageId)) imageId = '';
         if (!imageId) {
