@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f2f4f2">
+  <meta name="description" content="题解工坊：面向竞赛题解的 16:9 排版编辑器，支持 TeX、图片、JSON 工程与 PDF 导出。">
+  <title>题解工坊 · 竞赛题解排版</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23122b43'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='34' font-family='Microsoft YaHei,sans-serif' fill='white'%3E%E8%A7%A3%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="boot" id="boot">
+    <span class="boot-mark">解</span>
+    <p>正在打开题解工坊</p>
+  </div>
+
+  <header class="appbar">
+    <a class="brand" href="#" aria-label="题解工坊首页">
+      <span class="brand-mark">解</span>
+      <span class="brand-copy"><strong>题解工坊</strong><small>TUTORIAL STUDIO</small></span>
+    </a>
+    <div class="appbar-project"><span class="appbar-project-dot"></span><span id="project-crumb">未命名题解</span></div>
+    <div class="appbar-actions">
+      <span class="save-state" id="save-state"><i></i><span>已自动保存</span></span>
+      <button class="btn btn-ghost" id="import-button" type="button">导入</button>
+      <button class="btn btn-ghost" id="export-button" type="button">导出 JSON</button>
+      <button class="btn btn-ghost" id="deploy-button" type="button">部署</button>
+      <button class="btn btn-primary" id="pdf-button" type="button"><span aria-hidden="true">↗</span> 导出 PDF</button>
+      <div class="menu-wrap">
+        <button class="icon-btn" id="more-button" type="button" aria-label="更多操作" aria-haspopup="true" aria-expanded="false">···</button>
+        <div class="menu" id="more-menu" hidden>
+          <button type="button" data-menu="new">新建空白题解</button>
+          <button type="button" data-menu="demo">载入示例内容</button>
+          <button type="button" data-menu="prompt">AI 写作提示词</button>
+          <div class="menu-sep"></div>
+          <button type="button" data-menu="help">使用说明与快捷键</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar panel">
+      <div class="sidebar-head">
+        <div><span class="eyebrow">STRUCTURE</span><h1>题解结构</h1></div>
+        <span class="count" id="page-count">0</span>
+      </div>
+      <div class="project-chip"><span></span><strong id="project-name">未命名题解</strong></div>
+      <div class="add-row">
+        <button class="btn btn-primary btn-small" id="add-problem-button" type="button">＋ 题目</button>
+        <div class="add-page-wrap">
+          <button class="btn btn-ghost btn-small" id="add-page-button" type="button" aria-haspopup="true" aria-expanded="false">＋ 页面</button>
+          <div class="popover" id="page-menu" hidden>
+            <button type="button" data-add-page="solution">在题目下添加解法页</button>
+            <button type="button" data-add-page="custom">添加自定义页</button>
+            <button type="button" data-add-page="agenda">添加题目目录页</button>
+          </div>
+        </div>
+      </div>
+      <nav class="outline-list" id="outline-list" aria-label="题解页面"></nav>
+      <div class="sidebar-foot">
+        <div class="foot-links">
+          <button type="button" id="demo-button">载入示例</button>
+          <button type="button" id="new-button">新建空白</button>
+        </div>
+        <p>自动保存在本机浏览器 · 无后端</p>
+      </div>
+    </aside>
+
+    <section class="editor panel" aria-label="内容编辑器">
+      <div class="editor-head">
+        <div><span class="eyebrow" id="editor-eyebrow">PAGE</span><h2 id="editor-title">封面</h2></div>
+        <span class="step" id="editor-step">01 / 01</span>
+      </div>
+      <div class="overflow-note" id="overflow-note" hidden><span>内容可能超出这一页</span><button type="button" id="overflow-help">怎么处理？</button></div>
+      <div class="editor-fields" id="editor-fields"></div>
+    </section>
+
+    <section class="preview" aria-label="版式预览">
+      <div class="preview-head">
+        <div><span class="eyebrow">LIVE PREVIEW</span><h2>版式预览</h2></div>
+        <div class="preview-tools">
+          <button class="round-btn" id="prev-page" type="button" aria-label="上一页">‹</button>
+          <span id="preview-counter">1 / 1</span>
+          <button class="round-btn" id="next-page" type="button" aria-label="下一页">›</button>
+          <button class="btn btn-ghost btn-small focus-btn" id="focus-preview" type="button">全屏</button>
+        </div>
+      </div>
+      <div class="preview-stage">
+        <div class="preview-frame" id="preview-frame"></div>
+        <div class="overflow-badge" id="overflow-badge" hidden>内容可能溢出</div>
+      </div>
+      <div class="preview-foot"><span class="note-dot"></span><span>16 : 9 · PDF 就绪</span><span class="preview-sep"></span><span id="preview-label">封面</span></div>
+    </section>
+  </main>
+
+  <section class="print-deck" id="print-deck" aria-hidden="true"></section>
+
+  <dialog class="modal" id="import-dialog">
+    <form method="dialog" class="modal-card" id="import-form">
+      <div class="modal-head"><div><span class="eyebrow">OPEN PROJECT</span><h2>导入题解工程</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
+      <p class="modal-copy">粘贴完整 JSON，或选择此前导出的 <code>.json</code> 文件。旧版工程会自动迁移。</p>
+      <label class="drop-zone" id="json-drop">
+        <span>把 JSON 文件拖到这里，或点击选择</span>
+        <input type="file" id="json-file" accept=".json,application/json">
+      </label>
+      <textarea id="import-text" class="code-area import-area" placeholder="在这里粘贴完整的项目 JSON"></textarea>
+      <p class="form-error" id="import-error" role="alert"></p>
+      <div class="modal-actions"><button class="btn btn-ghost" value="cancel">取消</button><button class="btn btn-primary" id="apply-import" type="button">载入工程</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="formula-dialog">
+    <form method="dialog" class="modal-card modal-formula">
+      <div class="modal-head"><div><span class="eyebrow">TEX INSERT</span><h2>插入 TeX 公式</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
+      <p class="modal-copy">行内公式可直接写 <code>$...$</code>；独占一行的公式写 <code>$$...$$</code>。下面也支持 <code>\begin{aligned}</code>、<code>cases</code>、<code>matrix</code> 等环境。</p>
+      <div class="formula-grid">
+        <div class="formula-input-col">
+          <textarea id="formula-source" class="code-area formula-source" rows="4" spellcheck="false" placeholder="例如：\sum_{i=1}^{n} w_i |x_i - x|"></textarea>
+          <div class="formula-section-label">常用符号</div>
+          <div class="formula-palette" id="formula-palette"></div>
+          <div class="formula-section-label">模板</div>
+          <div class="formula-templates" id="formula-templates"></div>
+        </div>
+        <div class="formula-preview-col">
+          <span class="eyebrow">PREVIEW</span>
+          <div class="formula-preview" id="formula-preview"><span class="preview-empty">在上方输入 TeX</span></div>
+          <p class="formula-error" id="formula-error" role="alert"></p>
+        </div>
+      </div>
+      <div class="formula-options">
+        <label><input type="radio" name="formula-mode" value="inline" checked> 行内公式</label>
+        <label><input type="radio" name="formula-mode" value="display"> 独占一行</label>
+        <span class="formula-hint">Ctrl / ⌘ + Enter 插入</span>
+      </div>
+      <div class="modal-actions"><button class="btn btn-ghost" value="cancel">取消</button><button class="btn btn-primary" id="insert-formula" type="button">插入公式</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="image-dialog">
+    <div class="modal-card modal-wide">
+      <div class="modal-head"><div><span class="eyebrow">ASSET LIBRARY</span><h2>图片库</h2></div><button class="icon-btn" id="close-image" type="button" aria-label="关闭">×</button></div>
+      <p class="modal-copy">上传后会压缩到适合题解的大小，并嵌入工程 JSON。点击「插入」写进正文，或把图片设为本页主图。</p>
+      <label class="image-drop" id="image-drop">
+        <strong>拖拽图片到这里</strong>
+        <span>也可以粘贴截图，或点击选择 PNG / JPG / WebP / GIF</span>
+        <input type="file" id="image-input" accept="image/png,image/jpeg,image/webp,image/gif" multiple>
+      </label>
+      <p class="image-status" id="image-status"></p>
+      <div class="image-grid" id="image-grid"></div>
+      <div class="modal-actions"><button class="btn btn-ghost" id="finish-images" type="button">完成</button></div>
+    </div>
+  </dialog>
+
+  <dialog class="modal" id="pdf-dialog">
+    <form method="dialog" class="modal-card">
+      <div class="modal-head"><div><span class="eyebrow">EXPORT PDF</span><h2>导出 16:9 题解 PDF</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
+      <div class="pdf-summary"><strong id="pdf-page-count">0</strong><span>页 · 13.333 × 7.5 in · 960 × 540 pt</span></div>
+      <ol class="pdf-steps">
+        <li><b>点击下面的按钮</b><span>浏览器会打开打印窗口。</span></li>
+        <li><b>目标打印机选择「另存为 PDF」</b><span>页面尺寸保持 16:9，边距选择「无」。</span></li>
+        <li><b>关闭页眉和页脚，并开启「背景图形」</b><span>这样页眉 Logo、进度点和底色才会完整输出。</span></li>
+      </ol>
+      <p class="print-note">提示：为了获得清晰的矢量文字，本工具使用浏览器打印而不是截图。导出后建议翻到最后一页确认没有内容被裁切。</p>
+      <div class="modal-actions"><button class="btn btn-ghost" value="cancel">取消</button><button class="btn btn-primary" id="confirm-pdf" type="button">打开打印窗口</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="deploy-dialog">
+    <form method="dialog" class="modal-card modal-wide">
+      <div class="modal-head"><div><span class="eyebrow">GITHUB PAGES</span><h2>部署给其他人使用</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
+      <p class="modal-copy">这是一个纯静态站点，不需要服务器或数据库。上传到 GitHub 后，打开仓库的 <b>Settings → Pages</b>，把 Source 设为 <b>GitHub Actions</b> 即可。仓库里已经包含自动部署工作流。</p>
+      <div class="deploy-grid">
+        <div class="deploy-step"><span class="deploy-num">1</span><div><h3>创建仓库</h3><p>把整个文件夹推到 GitHub。参考 PDF 与临时预览图不要上传，仓库的 <code>.gitignore</code> 已经处理。</p><a href="https://github.com/new" target="_blank" rel="noreferrer">打开 github.com/new ↗</a></div></div>
+        <div class="deploy-step"><span class="deploy-num">2</span><div><h3>推送这些文件</h3><pre class="command-block" id="deploy-command">git init
+git add .
+git commit -m "deploy tutorial studio"
+git branch -M main
+git remote add origin https://github.com/&lt;your-name&gt;/&lt;repo&gt;.git
+git push -u origin main</pre><button class="btn btn-ghost btn-small" id="copy-deploy-command" type="button">复制命令</button></div></div>
+        <div class="deploy-step"><span class="deploy-num">3</span><div><h3>开启 Pages</h3><p>进入仓库的 Settings → Pages → Build and deployment，把 Source 设为 <b>GitHub Actions</b>。等待工作流变绿，站点地址是：</p><code class="url-code">https://&lt;your-name&gt;.github.io/&lt;repo&gt;/</code></div></div>
+      </div>
+      <p class="print-note">说明：GitHub Pages 托管的是「编辑器」本身。你和别人编辑的题解草稿只保存在各自浏览器的本地存储中；分享成稿时请导出 PDF，或导出 JSON 交给对方导入。</p>
+      <div class="modal-actions"><button class="btn btn-ghost" value="cancel">关闭</button><button class="btn btn-primary" id="copy-site-hint" type="button">复制部署说明</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="prompt-dialog">
+    <form method="dialog" class="modal-card modal-wide">
+      <div class="modal-head"><div><span class="eyebrow">WRITING BRIEF</span><h2>AI 写作提示词</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
+      <p class="modal-copy">把题面、标程和比赛数据填好后，复制这段提示词发给你常用的 AI。让它只返回一个 JSON 工程，再用「导入」载入。提示词会带上当前工程的结构示例。</p>
+      <textarea id="prompt-text" class="code-area prompt-area" readonly></textarea>
+      <p class="form-error" id="prompt-status" role="status"></p>
+      <div class="modal-actions"><button class="btn btn-ghost" value="cancel">关闭</button><button class="btn btn-primary" id="copy-prompt" type="button">复制提示词</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="help-dialog">
+    <form method="dialog" class="modal-card modal-wide">
+      <div class="modal-head"><div><span class="eyebrow">GUIDE</span><h2>使用说明</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
+      <div class="help-grid">
+        <section><h3>1. 先搭结构</h3><p>「＋ 题目」会同时创建题目页和一页解法。左侧结构可以添加解法页、自定义页和题目目录页。每道题自动编号，页眉进度点会标出当前题。</p></section>
+        <section><h3>2. 写 Markdown</h3><p>正文支持标题、列表、引用、表格、代码块、<code>**粗体**</code>、<code>==高亮==</code> 和链接。行内公式写 <code>$...$</code>，独立公式写 <code>$$...$$</code>；工具用 KaTeX 离线渲染。</p></section>
+        <section><h3>3. 插图片</h3><p>在正文工具栏点图片按钮，上传后插入 <code>![图注](asset:id)</code>；也可以把截图直接粘贴或拖进编辑区。图文页可以在右侧放一张主图。</p></section>
+        <section><h3>4. 检查页面</h3><p>预览会提示内容是否可能超出 16:9。出现提示时，精简文字、把推导拆到下一页，或改用通栏 / 图文布局。</p></section>
+        <section><h3>5. 导出 PDF</h3><p>点右上角「导出 PDF」，在打印窗口选择「另存为 PDF」、边距无、关闭页眉页脚并开启背景图形。每页固定为 960 × 540 pt。</p></section>
+        <section><h3>6. 分享与部署</h3><p>「导出 JSON」可以备份和交换工程；「部署」里有 GitHub Pages 的三步说明。工具没有后端，所有人的草稿都存在自己的浏览器里。</p></section>
+      </div>
+      <div class="shortcuts">
+        <span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd> 保存</span>
+        <span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>M</kbd> 插入公式</span>
+        <span><kbd>←</kbd> <kbd>→</kbd> 切换页面</span>
+        <span><kbd>Esc</kbd> 退出全屏 / 关闭弹窗</span>
+      </div>
+      <div class="modal-actions"><button class="btn btn-primary" value="cancel">知道了</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="confirm-dialog">
+    <div class="modal-card modal-small">
+      <div class="modal-head"><div><span class="eyebrow">CONFIRM</span><h2 id="confirm-title">确认操作</h2></div></div>
+      <p class="modal-copy" id="confirm-message"></p>
+      <div class="modal-actions"><button class="btn btn-ghost" id="confirm-cancel" type="button">取消</button><button class="btn btn-danger" id="confirm-ok" type="button">确认</button></div>
+    </div>
+  </dialog>
+
+  <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp" hidden>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <noscript><div class="noscript">题解工坊需要启用 JavaScript。</div></noscript>
+
+  <script src="vendor/katex/katex.min.js"></script>
+  <script src="vendor/marked.umd.js"></script>
+  <script src="vendor/purify.min.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/model.js"></script>
+  <script src="js/demo-assets.js"></script>
+  <script src="js/demo.js"></script>
+  <script src="js/markdown.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Local reference material — not part of the public site.
+_reference/
+_pdfpreview/
+_shots/
+*.local.pdf
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Dependencies / logs
+node_modules/
+*.log
