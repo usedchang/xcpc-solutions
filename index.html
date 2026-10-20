@@ -12,13 +12,13 @@
 </head>
 <body>
   <div class="boot" id="boot">
-    <span class="boot-mark">解</span>
+    <span class="boot-mark" aria-hidden="true">解</span>
     <p>正在打开题解工坊</p>
   </div>
 
   <header class="appbar">
     <a class="brand" href="#" aria-label="题解工坊首页">
-      <span class="brand-mark">解</span>
+      <span class="brand-mark" aria-hidden="true">解</span>
       <span class="brand-copy"><strong>题解工坊</strong><small>TUTORIAL STUDIO</small></span>
     </a>
     <div class="appbar-project"><span class="appbar-project-dot"></span><span id="project-crumb">未命名题解</span></div>
@@ -26,6 +26,7 @@
       <span class="save-state" id="save-state"><i></i><span>已自动保存</span></span>
       <button class="btn btn-ghost" id="import-button" type="button">导入</button>
       <button class="btn btn-ghost" id="export-button" type="button">导出 JSON</button>
+      <button class="btn btn-ghost" id="tex-button" type="button">导出 TeX</button>
       <button class="btn btn-primary" id="pdf-button" type="button"><span aria-hidden="true">↗</span> 导出 PDF</button>
       <div class="menu-wrap">
         <button class="icon-btn" id="more-button" type="button" aria-label="更多操作" aria-haspopup="true" aria-expanded="false">···</button>
@@ -165,6 +166,17 @@
     </div>
   </dialog>
 
+  <dialog class="modal" id="tex-dialog">
+    <form method="dialog" class="modal-card">
+      <div class="modal-head"><div><span class="eyebrow">EXPORT TEX</span><h2>导出 LaTeX 题解</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
+      <p class="modal-copy">导出可编辑的文字、公式和 16:9 页面布局。推荐下载完整工程 ZIP，解压后用 XeLaTeX 连续编译两次 <code>main.tex</code>，让页眉与页脚完成定位；也可上传到 Overleaf 并选择 XeLaTeX。</p>
+      <p class="modal-copy">完整工程包含正文图片、Logo 和编译说明。单独下载 .tex 时，图片仍引用 <code>assets/</code>，需要配合完整工程中的资源。网页外链图片无法直接打包时，会在导出说明中列出；WebP / GIF 会转为静态 PNG。</p>
+      <p class="print-note">TeX 使用相近的字号、颜色与页面尺寸；字体和换行可能与浏览器 PDF 略有差异。</p>
+      <p class="form-error" id="tex-status" role="status"></p>
+      <div class="modal-actions"><button class="btn btn-ghost" id="download-tex" type="button">仅下载 .tex</button><button class="btn btn-primary" id="download-tex-project" type="button">下载完整工程 ZIP</button></div>
+    </form>
+  </dialog>
+
   <dialog class="modal" id="pdf-dialog">
     <form method="dialog" class="modal-card">
       <div class="modal-head"><div><span class="eyebrow">EXPORT PDF</span><h2>导出 16:9 题解 PDF</h2></div><button class="icon-btn" value="cancel" aria-label="关闭">×</button></div>
@@ -199,7 +211,7 @@
 
         <section><h3>4. 检查页面</h3><p>预览会提示内容是否可能超出 16:9。出现提示时，精简文字、把推导拆到下一页，或改用通栏 / 图文布局。</p></section>
         <section><h3>5. 导出 PDF</h3><p>点右上角「导出 PDF」，在打印窗口选择「另存为 PDF」、边距无、关闭页眉页脚并开启背景图形。每页固定为 960 × 540 pt。</p></section>
-        <section><h3>6. 分享</h3><p>「导出 JSON」可以备份和交换工程；「导出 PDF」用于分享成稿。工具已经部署在 GitHub Pages 上，没有后端，所有人的草稿都存在自己的浏览器里。致谢页可以填写出题组、验题人、志愿者、参赛选手、教练老师和特别鸣谢，并默认标注「排名不分先后」；结语页适合写赛后的碎碎念。</p></section>
+        <section><h3>6. 导出与分享</h3><p>「导出 JSON」用于备份工程；「导出 TeX」可下载 .tex 源码或包含图片的 ZIP 工程，使用 XeLaTeX 编译，也可导入 Overleaf。导出 PDF 用于分享成稿。所有草稿都保存在自己的浏览器里。致谢页可以填写出题组、验题人、志愿者、参赛选手、教练老师和特别鸣谢；结语页适合写赛后的碎碎念。</p></section>
       </div>
       <div class="shortcuts">
         <span><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>S</kbd> 保存</span>
@@ -234,6 +246,8 @@
   <script src="js/demo.js"></script>
   <script src="js/markdown.js"></script>
   <script src="js/render.js"></script>
+  <script src="js/logo-tikz.js"></script>
+  <script src="js/tex.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

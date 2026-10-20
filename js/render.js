@@ -5,7 +5,7 @@
   const U = TX.util;
   const R = TX.render = {};
 
-  const DEFAULT_LOGO = `<svg class="deck-logo-default" viewBox="0 0 76 40" role="img" aria-label="题解工坊"><rect x="1" y="6" width="30" height="28" rx="7" fill="#122b43"/><text x="16" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff" font-family="Microsoft YaHei, PingFang SC, sans-serif">解</text><rect x="36" y="6" width="8" height="28" rx="4" fill="#1f5f8f"/><rect x="47" y="6" width="8" height="28" rx="4" fill="#d8a02c"/><rect x="58" y="6" width="8" height="28" rx="4" fill="#d34a3c"/></svg>`;
+  const DEFAULT_LOGO = '<img class="deck-logo deck-logo-default" src="assets/logo-mark.svg" alt="">';
 
   R.defaultLogo = DEFAULT_LOGO;
 
@@ -68,8 +68,8 @@
     </div>`;
   }
 
-  function titleMarkup(title, code) {
-    return `<div class="title-row">${code ? `<span class="problem-code">${esc(code)}</span>` : ''}<h1 class="slide-title">${esc(title || '')}</h1></div>`;
+  function titleMarkup(title) {
+    return `<div class="title-row"><h1 class="slide-title">${esc(title || '')}</h1></div>`;
   }
 
   function prose(source, project, className = '') {
@@ -104,8 +104,8 @@
     if (lines.length) lines.push('<div class="aside-gap"></div>');
 
     const stats = [];
-    if (problem.attempted.trim()) stats.push(`<p class="stat-line">${statValue(problem.attempted)} <span class="c-blue">Teams Attempted</span></p>`);
-    if (problem.solved.trim()) stats.push(`<p class="stat-line">${statValue(problem.solved)} <span class="c-green">Teams Solved</span></p>`);
+    if (problem.attempted.trim()) stats.push(`<p class="stat-line">${statValue(problem.attempted)} Teams <span class="c-blue">Attempted</span></p>`);
+    if (problem.solved.trim()) stats.push(`<p class="stat-line">${statValue(problem.solved)} Teams <span class="c-green">Solved</span></p>`);
     if (problem.firstBlood.trim()) stats.push(`<p class="stat-line">First Blood: <span class="c-red">${esc(problem.firstBlood)}</span></p>`);
     if (problem.difficulty.trim()) stats.push(`<p class="stat-line">Expected Difficulty: <span class="${difficultyClass(problem.difficulty)}">${esc(problem.difficulty)}</span></p>`);
     if (problem.judgeSolution.trim()) stats.push(`<p class="stat-line">Judge Solution: <span class="aside-strong">${esc(problem.judgeSolution)}</span></p>`);
@@ -153,7 +153,7 @@
       ${headerMarkup(project, page)}
       <div class="slide-body">
         ${kickerMarkup(page.kicker || 'CONTEST OVERVIEW', null, 0)}
-        ${titleMarkup(page.title || '题目一览', '')}
+        ${titleMarkup(page.title || '题目一览')}
         ${intro}
         <div class="agenda-grid${columns}">${items || (preview ? '<p class="empty-copy">还没有题目。</p>' : '')}</div>
       </div>
@@ -182,7 +182,7 @@
       ${headerMarkup(project, page)}
       <div class="slide-body thanks-body">
         ${kickerMarkup(page.kicker || '', null, 0)}
-        ${titleMarkup(page.title || '致谢', '')}
+        ${titleMarkup(page.title || '致谢')}
         <div class="prose thanks-intro">${intro}</div>
         ${String(page.thanksNote || '').trim() ? `<div class="thanks-order-note"><i></i>${esc(page.thanksNote)}</div>` : ''}
         <div class="thanks-grid">${groups}</div>
@@ -201,7 +201,7 @@
       ${headerMarkup(project, page)}
       <div class="slide-body closing-body">
         ${kickerMarkup(page.kicker || '', null, 0)}
-        ${titleMarkup(page.title || '写在最后', '')}
+        ${titleMarkup(page.title || '写在最后')}
         <div class="prose closing-copy">${body}</div>
         ${signoff ? `<div class="closing-signoff">${esc(signoff)}</div>` : ''}
       </div>
@@ -221,10 +221,10 @@
     return `<article class="slide-page problem-page" style="--accent:${attr(project.meta.accent)}">
       ${headerMarkup(project, page)}
       <div class="slide-body problem-body">
+        ${kickerMarkup('PROBLEM', null, 0)}
+        ${titleMarkup(problem.name)}
         <div class="problem-layout">
           <div class="problem-main">
-            ${kickerMarkup('PROBLEM', null, TX.model.problemSequence(project, page))}
-            ${titleMarkup(problem.name, problem.code)}
             <div class="prose problem-statement">${statement}</div>
             ${constraints}
           </div>
@@ -280,7 +280,7 @@
       ${headerMarkup(project, page)}
       <div class="slide-body solution-body">
         ${kickerMarkup(page.kicker || (page.type === 'solution' ? 'SOLUTION' : 'NOTE'), problem, TX.model.problemSequence(project, page))}
-        ${titleMarkup(page.title || (page.type === 'solution' ? '解法' : '说明'), '')}
+        <div class="solution-heading">${titleMarkup(problem ? problem.name : (page.title || '说明'))}${problem && page.title ? `<span class="section-title">${esc(page.title)}</span>` : ''}</div>
         <div class="solution-content">${body}${emptyHint}</div>
         ${String(page.complexity || '').trim() ? `<div class="slide-complexity"><span>COMPLEXITY</span>${TX.markdown.render(page.complexity, project)}</div>` : ''}
       </div>

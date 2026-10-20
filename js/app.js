@@ -312,11 +312,11 @@
     return `<div class="field">
       <span class="field-label"><span>页眉 Logo</span><em>PNG / JPG / WebP</em></span>
       <div class="logo-row">
-        <div class="logo-preview">${logo ? `<img src="${attr(logo)}" alt="当前 Logo">` : '<span>默认标记</span>'}</div>
+        <div class="logo-preview">${logo ? `<img src="${attr(logo)}" alt="当前 Logo">` : '<img class="logo-default-preview" src="assets/logo-mark.svg" alt="默认标记">'}</div>
         <button type="button" class="btn btn-ghost btn-small" data-logo-upload>${logo ? '更换' : '上传'}</button>
         ${logo ? '<button type="button" class="btn btn-ghost btn-small" data-logo-remove>移除</button>' : ''}
       </div>
-      <p class="field-hint">建议使用横向透明 PNG；不上传时显示内置的「解」标记。</p>
+      <p class="field-hint">建议使用横向透明 PNG；不上传时显示内置的云朵、灯泡与气球标记。</p>
     </div>`;
   }
 
@@ -350,7 +350,6 @@
     $('#editor-fields').innerHTML = `
       ${sectionDivider('COVER')}
       ${inputField('赛事英文标题 / 页眉', 'meta.conference', meta.conference, { placeholder: 'The 2026 ICPC Asia Regional Contest Tutorials' })}
-      ${inputField('封面眉题', 'meta.coverKicker', meta.coverKicker, { placeholder: 'CONTEST TUTORIALS' })}
       ${textareaField('主标题', 'meta.title', meta.title, { rows: 3, className: 'tall', meta: '可换行', placeholder: '2026 区域赛\\n竞赛题解' })}
       ${textareaField('副标题', 'meta.subtitle', meta.subtitle, { rows: 2, className: 'short', placeholder: '从核心观察到完整实现' })}
       <div class="field-grid">
@@ -1487,6 +1486,28 @@
     document.body.dataset.printReady = '1';
   }
 
+  async function exportTex(bundle) {
+    const buttons = [$('#download-tex'), $('#download-tex-project')];
+    buttons.forEach((button) => { button.disabled = true; });
+    $('#tex-status').textContent = '正在整理文字、公式和图片…';
+    try {
+      const result = await TX.tex.build(JSON.parse(JSON.stringify(state.project)));
+      if (bundle) {
+        U.download(`${U.safeSlug(projectName())}-tex.zip`, TX.tex.zip(result.files), 'application/zip');
+      } else {
+        U.download(`${U.safeSlug(projectName())}.tex`, result.source, 'application/x-tex;charset=utf-8');
+      }
+      $('#tex-status').textContent = result.warnings.length
+        ? `导出完成：${result.warnings.join('；')}`
+        : '导出完成。请用 XeLaTeX 编译；有图片时请保留 assets 文件夹。';
+      showToast(bundle ? 'TeX 完整工程已导出。' : 'TeX 源码已导出。');
+    } catch (error) {
+      $('#tex-status').textContent = `导出失败：${error.message || '请重试。'}`;
+    } finally {
+      buttons.forEach((button) => { button.disabled = false; });
+    }
+  }
+
   async function openPrintDialog() {
     $('#pdf-page-count').textContent = String(state.project.pages.length);
     openDialog('pdf-dialog');
@@ -1630,6 +1651,12 @@ ${JSON.stringify(promptSnapshot(), null, 2)}`;
     $('#new-button').addEventListener('click', newProject);
     $('#import-button').addEventListener('click', openImport);
     $('#export-button').addEventListener('click', exportJson);
+    $('#tex-button').addEventListener('click', () => {
+      $('#tex-status').textContent = '';
+      openDialog('tex-dialog');
+    });
+    $('#download-tex').addEventListener('click', () => exportTex(false));
+    $('#download-tex-project').addEventListener('click', () => exportTex(true));
     $('#pdf-button').addEventListener('click', openPrintDialog);
     $('#confirm-pdf').addEventListener('click', doPrint);
     $('#confirm-ok').addEventListener('click', () => resolveConfirm(true));

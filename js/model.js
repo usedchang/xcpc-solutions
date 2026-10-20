@@ -34,7 +34,7 @@
     authors: '',
     organizer: 'Problem Setting Group',
     logo: '',
-    accent: '#1f5f8f',
+    accent: '#0b4f9c',
     showDots: true,
     footerNote: ''
   });

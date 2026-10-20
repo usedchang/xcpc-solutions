@@ -1,8 +1,11 @@
 # Local reference material — not part of the public site.
 _reference/
+_work/
 _pdfpreview/
 _shots/
 *.local.pdf
+/ICPC26西安tutorial.pdf
+/icpc_foundation.svg
 
 # OS / editor noise
 .DS_Store
@@ -13,4 +16,5 @@ desktop.ini
 
 # Dependencies / logs
 node_modules/
+__pycache__/
 *.log

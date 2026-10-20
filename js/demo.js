@@ -16,7 +16,7 @@
       authors: '题解组',
       organizer: 'Problem Setting Group',
       logo: '',
-      accent: '#1f5f8f',
+      accent: '#0b4f9c',
       showDots: true,
       footerNote: ''
     },
@@ -95,7 +95,7 @@
         kicker: 'IMPLEMENTATION',
         title: '实现细节',
         layout: 'single',
-        left: '```cpp\nsort(seg.begin(), seg.end());\nvector<pair<int, int>> ans;\nfor (auto [l, r] : seg) {\n    if (ans.empty() || l > ans.back().second) {\n        ans.push_back({l, r});\n    } else {\n        ans.back().second = max(ans.back().second, r);\n    }\n}\n```\n\n注意这里用 `l > R` 判断是否出现空隙，因此**相接的区间也会合并**。如果题目改成半开区间 $[l,r)$，判断条件要相应调整。',
+        left: '```cpp\nsort(seg.begin(), seg.end());\nvector<pair<int, int>> ans;\nfor (auto [l, r] : seg) {\n    if (ans.empty() || l > ans.back().second) {\n        ans.push_back({l, r});\n    } else {\n        ans.back().second = max(ans.back().second, r);\n    }\n}\n```\n\n注意用 `l > R` 判断空隙，所以**相接的区间也会合并**；半开区间调整条件即可。',
         right: '',
         complexity: '时间复杂度 $O(n\\log n)$，空间复杂度 $O(n)$。',
         imageId: '',
