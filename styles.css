@@ -405,9 +405,9 @@ body.focus-preview .preview-foot { min-height: 25px; }
   background: #edf4f4; font-family: var(--mono); font-size: .84em;
 }
 .prose pre {
-  margin: .55em 0 .8em; padding: .7em .82em; overflow: hidden;
+  margin: .55em 0 .65em; padding: .55em .82em; overflow: hidden;
   border-radius: .3em; color: #e8f1ef; background: #142c3b;
-  font-family: var(--mono); font-size: .82em; line-height: 1.48; white-space: pre-wrap;
+  font-family: var(--mono); font-size: .82em; line-height: 1.38; white-space: pre-wrap;
 }
 .prose pre code { padding: 0; color: inherit; background: transparent; font-size: 1em; }
 .prose table { width: 100%; margin: .55em 0; border-collapse: collapse; font-size: .88em; line-height: 1.45; }
@@ -755,6 +755,7 @@ kbd { display: inline-block; min-width: 17px; padding: 1px 4px; border: 1px soli
 .prose .c-green, .c-green { color: #00c62b; }
 .prose .c-blue, .c-blue { color: #0074d9; }
 .katex { color: inherit; }
+.katex-mathml { user-select: none; }
 .problem-layout { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
 .problem-main { padding-right: 2.2%; }
 .problem-aside { padding-left: 2.2%; border-color: #e1e8ed; color: #172b3a; font-size: 1.979cqw; line-height: 1.48; align-self: start; }
